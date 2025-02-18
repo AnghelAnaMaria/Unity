@@ -1,0 +1,30 @@
+fileFormatVersion: 2
+guid: 68144007f4b740c42a3dc9589016a849
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - roomMap: {instanceID: 0}
+  - colliderMap: {instanceID: 0}
+  - leftWalls: {instanceID: 0}
+  - rightWalls: {instanceID: 0}
+  - upWalls: {instanceID: 0}
+  - downWalls: {instanceID: 0}
+  - rightBoundary: {instanceID: 0}
+  - upBoundary: {instanceID: 0}
+  - floorTile: {fileID: 11400000, guid: 0c1ebed7f29ce3c42bdba2cf497523be, type: 2}
+  - colliderTile: {fileID: 11400000, guid: 630c22b5fe7f60348ae51c55de2d7ebc, type: 2}
+  - leftWall: {fileID: 11400000, guid: e048bead8b1b85a4c87a3487328080c4, type: 2}
+  - rightWall: {fileID: 11400000, guid: 2c1cfdd65f3d5be4aa181fc6b0b2806e, type: 2}
+  - upWall: {fileID: 11400000, guid: fca01c8d9961dd148934306cbb61284b, type: 2}
+  - downWall: {fileID: 11400000, guid: a8a580af65c18e047a74e38bad859d6b, type: 2}
+  - rightBoundaryWall: {fileID: 11400000, guid: 09cdd4294562abb4ebad9445b661dc76, type: 2}
+  - upBoundarytWall: {fileID: 11400000, guid: 9892193083342144898dc7b77f9ab752, type: 2}
+  - generate: {fileID: -7250344737315704751, guid: 67f06e7f5f30a634091ec022e0e61f81, type: 3}
+  - dungeonData: {instanceID: 0}
+  - apartmentConfig: {fileID: 11400000, guid: 6918967fd45fb43429abb539c604ca05, type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

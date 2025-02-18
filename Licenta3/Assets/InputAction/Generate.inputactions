@@ -1,0 +1,45 @@
+{
+    "name": "Generate",
+    "maps": [
+        {
+            "name": "dungeon",
+            "id": "7b905e35-3da2-4160-92cb-06c16fa43132",
+            "actions": [
+                {
+                    "name": "generate",
+                    "type": "Button",
+                    "id": "37a8f232-c2c3-447e-aff6-db62db3fb53d",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "2e7c34f1-1d0a-4612-b959-d0d42db786b9",
+                    "path": "<Keyboard>/#(G)",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "generate",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "9c32dd57-0fcf-40ae-9f11-61057efd579e",
+                    "path": "",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "generate",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}
