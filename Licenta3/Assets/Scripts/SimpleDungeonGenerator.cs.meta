@@ -19,7 +19,7 @@ MonoImporter:
   - upWall: {fileID: 11400000, guid: fca01c8d9961dd148934306cbb61284b, type: 2}
   - downWall: {fileID: 11400000, guid: a8a580af65c18e047a74e38bad859d6b, type: 2}
   - rightBoundaryWall: {fileID: 11400000, guid: 09cdd4294562abb4ebad9445b661dc76, type: 2}
-  - upBoundarytWall: {fileID: 11400000, guid: 9892193083342144898dc7b77f9ab752, type: 2}
+  - upBoundaryWall: {fileID: 11400000, guid: 9892193083342144898dc7b77f9ab752, type: 2}
   - generate: {fileID: -7250344737315704751, guid: 67f06e7f5f30a634091ec022e0e61f81, type: 3}
   - dungeonData: {instanceID: 0}
   - apartmentConfig: {fileID: 11400000, guid: 6918967fd45fb43429abb539c604ca05, type: 2}

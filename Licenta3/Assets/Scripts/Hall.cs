@@ -38,7 +38,7 @@ public class Hall : Space
 
     }
     //Hall Constructor:
-    public Hall(Vector2 dimensions) : base(dimensions) { }
+    public Hall(Vector2Int dimensions) : base(dimensions) { }
 
     //Clear:
     public override void ClearAll()

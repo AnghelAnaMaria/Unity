@@ -1,11 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Room : Space
 {
-    private Vector2 roomCenterPos;
+    private Vector2Int roomCenterPos;//daca camera e de 7m atunci facem (7-1)/2 si adaugam ultima parcela la final
     private string roomName;
     private RoomType roomType;
 
@@ -19,9 +20,9 @@ public class Room : Space
 
 
     //Get methods:
-    public Vector2 RoomCenterPos() => roomCenterPos;//pt citire
+    public Vector2Int RoomCenterPos() => roomCenterPos;//pt citire
     public string RoomName() => roomName;
-    public RoomType RoomType() => roomType;
+    public RoomType GetRoomType() => roomType;
 
     public List<string> Neighbors(string direction)
     {
@@ -35,7 +36,7 @@ public class Room : Space
     }
 
     //Set methods, Add, Remove:
-    public void SetRoomCenter(Vector2 roomCenterPos)
+    public void SetRoomCenter(Vector2Int roomCenterPos)
     {
         this.roomCenterPos = roomCenterPos;
     }
@@ -74,10 +75,62 @@ public class Room : Space
     }
 
     //Room constructor:
-    public Room(Vector2 roomCenterPos, RoomType roomType, Vector2 dimensions) : base(dimensions)//Call the base class constructor
+    public Room(Vector2Int roomCenterPos, RoomType roomType, Vector2Int dimensions) : base(dimensions)//Call the base class constructor
     {
         this.roomCenterPos = roomCenterPos;
         this.roomType = roomType;
+    }
+
+    public Vector2Int AddToCurrentPosition(int direction = -1)//o folosim la functia PlaceRoomsProcedurally()
+    {
+        Vector2Int half = this.GetDimensions() / 2;
+        bool isOddX = half.x % 2 != 0;//x impar
+        bool isOddY = half.y % 2 != 0;//y impar
+
+        if (isOddX) half.x = (this.GetDimensions().x - 1) / 2;
+        if (isOddY) half.y = (this.GetDimensions().y - 1) / 2;
+
+        switch (direction)
+        {
+            case 0: // sus
+                return new Vector2Int(0, half.y);
+            case 1: // stanga
+                return new Vector2Int(-half.x, 0);
+            case 2: // jos
+                return new Vector2Int(0, -half.y);
+            case 3: // dreapta
+                return new Vector2Int(half.x, 0);
+            default:
+                Debug.Log("Ceva nu a mers bine; nu s-a dat o directie");
+                return new Vector2Int(1, 1);
+        }
+    }
+
+    public Vector2Int StartPosition(Room room)
+    {
+        int number = UnityEngine.Random.Range(1, 4);//Alegem random un perete al camerei room
+        if (number == 1)
+        {
+            Vector2Int firstPosition = room.GetNearWallTilesUp()[UnityEngine.Random.Range(0, room.GetNearWallTilesUp().Count)];
+            return firstPosition;
+        }
+        if (number == 2)
+        {
+            Vector2Int firstPosition = room.GetNearWallTilesDown()[UnityEngine.Random.Range(0, room.GetNearWallTilesDown().Count)];
+            return firstPosition;
+        }
+        if (number == 3)
+        {
+            Vector2Int firstPosition = room.GetNearWallTilesLeft()[UnityEngine.Random.Range(0, room.GetNearWallTilesLeft().Count)];
+            return firstPosition;
+        }
+        if (number == 4)
+        {
+            Vector2Int firstPosition = room.GetNearWallTilesRight()[UnityEngine.Random.Range(0, room.GetNearWallTilesRight().Count)];
+            return firstPosition;
+        }
+
+        return new Vector2Int(0, 0);
     }
 
     //Clear function:

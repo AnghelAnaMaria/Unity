@@ -6,6 +6,7 @@ public enum RoomType
     Bucatarie,
     Sufragerie,
     Dormitor,
+    Birou,
     Baie,
     Hol
 

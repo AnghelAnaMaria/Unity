@@ -4,37 +4,37 @@ using System.Collections.Generic;
 using UnityEngine;
 public class Space//I use inheritance. I'll inherit from this class:
 {
-    protected Vector2 dimensions;
+    protected Vector2Int dimensions;
     protected HashSet<Vector2Int> floorTiles = new HashSet<Vector2Int>();
-    protected HashSet<Vector2Int> nearWallTilesUp = new HashSet<Vector2Int>();
-    protected HashSet<Vector2Int> nearWallTilesDown = new HashSet<Vector2Int>();
-    protected HashSet<Vector2Int> nearWallTilesRight = new HashSet<Vector2Int>();
-    protected HashSet<Vector2Int> nearWallTilesLeft = new HashSet<Vector2Int>();
+    protected HashSet<Vector2Int> upTiles = new HashSet<Vector2Int>();
+    protected HashSet<Vector2Int> downTiles = new HashSet<Vector2Int>();
+    protected HashSet<Vector2Int> rightTiles = new HashSet<Vector2Int>();
+    protected HashSet<Vector2Int> leftTiles = new HashSet<Vector2Int>();
     protected HashSet<Vector2Int> innerTiles = new HashSet<Vector2Int>();
     protected HashSet<Vector2Int> cornerTiles = new HashSet<Vector2Int>();
-    protected HashSet<Vector2Int> propPositions = new HashSet<Vector2Int>();
+    protected HashSet<Vector2> propPositions = new HashSet<Vector2>();
     protected List<GameObject> propObjectReferences = new List<GameObject>();
     protected List<Vector2Int> accessibleDoorTiles = new List<Vector2Int>();
 
     //Get methods:
-    public Vector2 Dimensions() => dimensions;
-    public IReadOnlyCollection<Vector2Int> FloorTiles() => floorTiles;
+    public Vector2Int GetDimensions() => dimensions;
+    //public IReadOnlyCollection<Vector2Int> FloorTiles() => floorTiles;
     public HashSet<Vector2Int> GetFloorTiles()
     {
         return new HashSet<Vector2Int>(floorTiles);
     }
-    public IReadOnlyCollection<Vector2Int> NearWallTilesUp => nearWallTilesUp;
-    public IReadOnlyCollection<Vector2Int> NearWallTilesDown => nearWallTilesDown;
-    public IReadOnlyCollection<Vector2Int> NearWallTilesRight => nearWallTilesRight;
-    public IReadOnlyCollection<Vector2Int> NearWallTilesLeft => nearWallTilesLeft;
+    public List<Vector2Int> GetNearWallTilesUp() => new List<Vector2Int>(upTiles);
+    public List<Vector2Int> GetNearWallTilesDown() => new List<Vector2Int>(downTiles);
+    public List<Vector2Int> GetNearWallTilesRight() => new List<Vector2Int>(rightTiles);
+    public List<Vector2Int> GetNearWallTilesLeft() => new List<Vector2Int>(leftTiles);
     public IReadOnlyCollection<Vector2Int> InnerTiles => innerTiles;
     public IReadOnlyCollection<Vector2Int> CornerTiles => cornerTiles;
-    public IReadOnlyCollection<Vector2Int> PropPositions => propPositions;
+    public IReadOnlyCollection<Vector2> PropPositions => propPositions;
     public IReadOnlyCollection<GameObject> PropObjectReferences => propObjectReferences;
     public IReadOnlyCollection<Vector2Int> AccessibleDoorTiles => accessibleDoorTiles;
 
     //Set methods:
-    public void SetRoomDimensions(Vector2 dimensions)
+    public void SetRoomDimensions(Vector2Int dimensions)
     {
         if (dimensions.x <= 0 || dimensions.y <= 0)
             throw new ArgumentException("Dimensions must be positive values.");
@@ -70,48 +70,56 @@ public class Space//I use inheritance. I'll inherit from this class:
     private bool AddToCollection<T>(HashSet<T> collection, T item)
     {
         if (item == null) throw new ArgumentNullException(nameof(item));
-        //if (collection.Contains(item)) throw new InvalidOperationException("Item already exists.");
-        return collection.Add(item);//return false if item already in collection
+        if (collection.Contains(item))
+        {
+            return false;
+        }
+        collection.Add(item);
+        return true;
     }
-    private void RemoveFromCollection<T>(HashSet<T> collection, T item)
+    private bool RemoveFromCollection<T>(HashSet<T> collection, T item)
     {
         if (item == null) throw new ArgumentNullException(nameof(item));
-        if (!collection.Contains(item)) throw new InvalidOperationException("Item not found.");
+        if (!collection.Contains(item))
+        {
+            return false;
+        }
         collection.Remove(item);
+        return true;
     }
 
     public void AddFloorTiles(Vector2Int pos) => AddToCollection(floorTiles, pos);
-    public void AddNearWallTilesDown(Vector2Int pos) => AddToCollection(nearWallTilesDown, pos);
-    public void AddNearWallTilesUp(Vector2Int pos) => AddToCollection(nearWallTilesUp, pos);
-    public void AddNearWallTilesLeft(Vector2Int pos) => AddToCollection(nearWallTilesLeft, pos);
-    public void AddNearWallTilesRight(Vector2Int pos) => AddToCollection(nearWallTilesRight, pos);
+    public void AddNearWallTilesDown(Vector2Int pos) => AddToCollection(downTiles, pos);
+    public void AddNearWallTilesUp(Vector2Int pos) => AddToCollection(upTiles, pos);
+    public void AddNearWallTilesLeft(Vector2Int pos) => AddToCollection(leftTiles, pos);
+    public void AddNearWallTilesRight(Vector2Int pos) => AddToCollection(rightTiles, pos);
     public void AddInnerTiles(Vector2Int pos) => AddToCollection(innerTiles, pos);
     public void AddCornerTiles(Vector2Int pos) => AddToCollection(cornerTiles, pos);
     public void AddPropPositions(Vector2Int pos) => AddToCollection(propPositions, pos);
 
     public void RemoveFloorTiles(Vector2Int pos) => RemoveFromCollection(floorTiles, pos);
-    public void RemoveNearWallTilesDown(Vector2Int pos) => RemoveFromCollection(nearWallTilesDown, pos);
-    public void RemoveNearWallTilesUp(Vector2Int pos) => RemoveFromCollection(nearWallTilesUp, pos);
-    public void RemoveNearWallTilesLeft(Vector2Int pos) => RemoveFromCollection(nearWallTilesLeft, pos);
-    public void RemoveNearWallTilesRight(Vector2Int pos) => RemoveFromCollection(nearWallTilesRight, pos);
+    public void RemoveNearWallTilesDown(Vector2Int pos) => RemoveFromCollection(downTiles, pos);
+    public void RemoveNearWallTilesUp(Vector2Int pos) => RemoveFromCollection(upTiles, pos);
+    public void RemoveNearWallTilesLeft(Vector2Int pos) => RemoveFromCollection(leftTiles, pos);
+    public void RemoveNearWallTilesRight(Vector2Int pos) => RemoveFromCollection(rightTiles, pos);
     public void RemoveInnerTiles(Vector2Int pos) => RemoveFromCollection(innerTiles, pos);
     public void RemoveColliderTiles(Vector2Int pos) => RemoveFromCollection(cornerTiles, pos);
     public void RemovePropPositions(Vector2Int pos) => RemoveFromCollection(propPositions, pos);
 
 
     //Constructor:
-    public Space(Vector2 dimensions)
+    public Space(Vector2Int dimensions)
     {
         this.dimensions = dimensions;
 
         floorTiles = new HashSet<Vector2Int>();
-        nearWallTilesUp = new HashSet<Vector2Int>();
-        nearWallTilesDown = new HashSet<Vector2Int>();
-        nearWallTilesRight = new HashSet<Vector2Int>();
-        nearWallTilesLeft = new HashSet<Vector2Int>();
+        upTiles = new HashSet<Vector2Int>();
+        downTiles = new HashSet<Vector2Int>();
+        rightTiles = new HashSet<Vector2Int>();
+        leftTiles = new HashSet<Vector2Int>();
         innerTiles = new HashSet<Vector2Int>();
         cornerTiles = new HashSet<Vector2Int>();
-        propPositions = new HashSet<Vector2Int>();
+        propPositions = new HashSet<Vector2>();
         propObjectReferences = new List<GameObject>();
         accessibleDoorTiles = new List<Vector2Int>();
     }
@@ -120,10 +128,10 @@ public class Space//I use inheritance. I'll inherit from this class:
     public virtual void ClearAll()
     {
         floorTiles.Clear();
-        nearWallTilesUp.Clear();
-        nearWallTilesDown.Clear();
-        nearWallTilesRight.Clear();
-        nearWallTilesLeft.Clear();
+        upTiles.Clear();
+        downTiles.Clear();
+        rightTiles.Clear();
+        leftTiles.Clear();
         innerTiles.Clear();
         cornerTiles.Clear();
         propPositions.Clear();
