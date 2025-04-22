@@ -1,11 +1,15 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.WindowsRuntime;
 using Unity.VisualScripting;
 using UnityEngine;
 
 public class Room : Space
 {
+    private bool skipBoundaryWalls;//Pt. OpenSpace
+    private static int nextId = 0;//Camp static
+    public int RoomId { get; private set; }//Id unic
     private Vector2Int roomCenterPos;//daca camera e de 7m atunci facem (7-1)/2 si adaugam ultima parcela la final
     private string roomName;
     private RoomType roomType;
@@ -20,11 +24,12 @@ public class Room : Space
 
 
     //Get methods:
-    public Vector2Int RoomCenterPos() => roomCenterPos;//pt citire
-    public string RoomName() => roomName;
+    public bool GetSkipBoundaryWalls() => this.skipBoundaryWalls;
+    public Vector2Int GetRoomCenterPos() => roomCenterPos;//pt citire
+    public string GetRoomName() => roomName;
     public RoomType GetRoomType() => roomType;
 
-    public List<string> Neighbors(string direction)
+    public List<string> GetNeighbors(string direction)
     {
         if (neighbors.ContainsKey(direction))
         {
@@ -36,6 +41,10 @@ public class Room : Space
     }
 
     //Set methods, Add, Remove:
+    public void SetSkipBoundaryWalls(bool skipBoundaryWalls = false)
+    {
+        this.skipBoundaryWalls = skipBoundaryWalls;
+    }
     public void SetRoomCenter(Vector2Int roomCenterPos)
     {
         this.roomCenterPos = roomCenterPos;
@@ -75,10 +84,19 @@ public class Room : Space
     }
 
     //Room constructor:
-    public Room(Vector2Int roomCenterPos, RoomType roomType, Vector2Int dimensions) : base(dimensions)//Call the base class constructor
+    public Room(Vector2Int roomCenterPos = default, RoomType roomType = RoomType.Bucatarie, Vector2Int dimensions = default) : base(dimensions)//Call the base class constructor
     {
         this.roomCenterPos = roomCenterPos;
         this.roomType = roomType;
+
+        this.RoomId = nextId++;
+        //Debug.Log($"Room creat cu ID: {this.RoomId}");
+
+    }
+
+    public static void ResetRoomIds()//Metoda statica
+    {
+        nextId = 0;
     }
 
     public Vector2Int AddToCurrentPosition(int direction = -1)//o folosim la functia PlaceRoomsProcedurally()
@@ -101,7 +119,7 @@ public class Room : Space
             case 3: // dreapta
                 return new Vector2Int(half.x, 0);
             default:
-                Debug.Log("Ceva nu a mers bine; nu s-a dat o directie");
+                Debug.Log("S-a apelat pentru prima camera, fara directie");
                 return new Vector2Int(1, 1);
         }
     }
@@ -111,26 +129,49 @@ public class Room : Space
         int number = UnityEngine.Random.Range(1, 4);//Alegem random un perete al camerei room
         if (number == 1)
         {
-            Vector2Int firstPosition = room.GetNearWallTilesUp()[UnityEngine.Random.Range(0, room.GetNearWallTilesUp().Count)];
+            Vector2Int firstPosition = room.GetUpTiles()[UnityEngine.Random.Range(0, room.GetUpTiles().Count)];
             return firstPosition;
         }
         if (number == 2)
         {
-            Vector2Int firstPosition = room.GetNearWallTilesDown()[UnityEngine.Random.Range(0, room.GetNearWallTilesDown().Count)];
+            Vector2Int firstPosition = room.GetDownTiles()[UnityEngine.Random.Range(0, room.GetDownTiles().Count)];
             return firstPosition;
         }
         if (number == 3)
         {
-            Vector2Int firstPosition = room.GetNearWallTilesLeft()[UnityEngine.Random.Range(0, room.GetNearWallTilesLeft().Count)];
+            Vector2Int firstPosition = room.GetLeftTiles()[UnityEngine.Random.Range(0, room.GetLeftTiles().Count)];
             return firstPosition;
         }
         if (number == 4)
         {
-            Vector2Int firstPosition = room.GetNearWallTilesRight()[UnityEngine.Random.Range(0, room.GetNearWallTilesRight().Count)];
+            Vector2Int firstPosition = room.GetRightTiles()[UnityEngine.Random.Range(0, room.GetRightTiles().Count)];
             return firstPosition;
         }
 
         return new Vector2Int(0, 0);
+    }
+
+    public HashSet<Vector2Int> FloorTilesAndSpaceAround(Vector2Int roomCenter, bool neighbor)
+    {
+        Vector2Int half = this.GetDimensions() / 2;
+        bool isOddX = this.GetDimensions().x % 2 != 0;
+        bool isOddY = this.GetDimensions().y % 2 != 0;
+
+        if (isOddX) half.x = (this.GetDimensions().x - 1) / 2;
+        if (isOddY) half.y = (this.GetDimensions().y - 1) / 2;
+
+        HashSet<Vector2Int> positions = new HashSet<Vector2Int>();
+
+        for (var x = -half.x - (neighbor ? 0 : 1); x < half.x + (isOddX ? 1 : 0) + (neighbor ? 0 : 1); x++)
+        {
+            for (var y = -half.y - (isOddY ? 1 : 0) - (neighbor ? 0 : 1); y < half.y + (neighbor ? 0 : 1); y++)
+            {
+                Vector2Int position = roomCenter + new Vector2Int(x, y);
+                positions.Add(position);
+
+            }
+        }
+        return positions;
     }
 
     //Clear function:
@@ -148,8 +189,11 @@ public class Room : Space
         if (obj is Room otherRoom) //Verificam dacă obj este de tip Room.
         {
             return this.roomCenterPos == otherRoom.roomCenterPos &&
-                this.floorTiles.SetEquals(otherRoom.floorTiles) &&
-                AreNeighborsEqual(otherRoom.neighbors);
+                   this.dimensions == otherRoom.dimensions &&
+                   this.roomName == otherRoom.roomName &&
+                   this.roomType == otherRoom.roomType &&
+                this.floorTiles.SetEquals(otherRoom.floorTiles);
+            // AreNeighborsEqual(otherRoom.neighbors);
         }
         return false;
     }

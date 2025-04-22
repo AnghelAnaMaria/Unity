@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class Hall : Space
 {
+    private Vector2Int hallCenter;
     private Dictionary<string, List<Room>> hallNeighbors = new Dictionary<string, List<Room>>()
     {
     { "Up", new List<Room>() },
@@ -14,7 +15,8 @@ public class Hall : Space
     };
 
     //Get methods:
-    public IReadOnlyList<Room> HallNeighbors(string direction)
+    public Vector2Int GetHallCenter() => this.hallCenter;
+    public IReadOnlyList<Room> GetHallNeighbors(string direction)
     {
         if (!hallNeighbors.ContainsKey(direction))
             throw new ArgumentException($"Invalid direction: {direction}");
@@ -23,6 +25,10 @@ public class Hall : Space
     }
 
     //Set methods, Add, Remove:
+    public void SetHallCenter(Vector2Int hallCenter)
+    {
+        this.hallCenter = hallCenter;
+    }
     public void AddNeighbor(string direction, Room neighbor)
     {
         if (!hallNeighbors.ContainsKey(direction))
@@ -38,7 +44,10 @@ public class Hall : Space
 
     }
     //Hall Constructor:
-    public Hall(Vector2Int dimensions) : base(dimensions) { }
+    public Hall(Vector2Int hallCenter, Vector2Int dimensions) : base(dimensions)
+    {
+        this.hallCenter = hallCenter;
+    }
 
     //Clear:
     public override void ClearAll()
@@ -54,7 +63,8 @@ public class Hall : Space
     {
         if (obj is Hall otherHall)//daca obj e de tip Hall object
         {
-            return AreHallNeighborsEqual(otherHall.hallNeighbors);
+            return this.hallCenter == otherHall.hallCenter;
+            ///  AreHallNeighborsEqual(otherHall.hallNeighbors);
         }
         return false;
     }

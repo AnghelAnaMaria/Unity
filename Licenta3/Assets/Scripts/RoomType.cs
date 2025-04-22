@@ -7,7 +7,6 @@ public enum RoomType
     Sufragerie,
     Dormitor,
     Birou,
-    Baie,
-    Hol
+    Baie
 
 }

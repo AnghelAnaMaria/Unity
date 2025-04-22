@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 public class Space//I use inheritance. I'll inherit from this class:
 {
@@ -19,19 +20,19 @@ public class Space//I use inheritance. I'll inherit from this class:
     //Get methods:
     public Vector2Int GetDimensions() => dimensions;
     //public IReadOnlyCollection<Vector2Int> FloorTiles() => floorTiles;
-    public HashSet<Vector2Int> GetFloorTiles()
+    public List<Vector2Int> GetFloorTiles()
     {
-        return new HashSet<Vector2Int>(floorTiles);
+        return new List<Vector2Int>(floorTiles);
     }
-    public List<Vector2Int> GetNearWallTilesUp() => new List<Vector2Int>(upTiles);
-    public List<Vector2Int> GetNearWallTilesDown() => new List<Vector2Int>(downTiles);
-    public List<Vector2Int> GetNearWallTilesRight() => new List<Vector2Int>(rightTiles);
-    public List<Vector2Int> GetNearWallTilesLeft() => new List<Vector2Int>(leftTiles);
-    public IReadOnlyCollection<Vector2Int> InnerTiles => innerTiles;
-    public IReadOnlyCollection<Vector2Int> CornerTiles => cornerTiles;
-    public IReadOnlyCollection<Vector2> PropPositions => propPositions;
-    public IReadOnlyCollection<GameObject> PropObjectReferences => propObjectReferences;
-    public IReadOnlyCollection<Vector2Int> AccessibleDoorTiles => accessibleDoorTiles;
+    public List<Vector2Int> GetUpTiles() => new List<Vector2Int>(upTiles);
+    public List<Vector2Int> GetDownTiles() => new List<Vector2Int>(downTiles);
+    public List<Vector2Int> GetRightTiles() => new List<Vector2Int>(rightTiles);
+    public List<Vector2Int> GetLeftTiles() => new List<Vector2Int>(leftTiles);
+    public List<Vector2Int> GetInnerTiles() => new List<Vector2Int>(innerTiles);
+    public List<Vector2Int> GetCornerTiles() => new List<Vector2Int>(cornerTiles);
+    public List<Vector2> GetPropPositions() => new List<Vector2>(propPositions);
+    public List<GameObject> GetPropObjectReferences() => new List<GameObject>(propObjectReferences);
+    public List<Vector2Int> GetAccesibleDoorTiles() => new List<Vector2Int>(accessibleDoorTiles);
 
     //Set methods:
     public void SetRoomDimensions(Vector2Int dimensions)
@@ -89,19 +90,19 @@ public class Space//I use inheritance. I'll inherit from this class:
     }
 
     public void AddFloorTiles(Vector2Int pos) => AddToCollection(floorTiles, pos);
-    public void AddNearWallTilesDown(Vector2Int pos) => AddToCollection(downTiles, pos);
-    public void AddNearWallTilesUp(Vector2Int pos) => AddToCollection(upTiles, pos);
-    public void AddNearWallTilesLeft(Vector2Int pos) => AddToCollection(leftTiles, pos);
-    public void AddNearWallTilesRight(Vector2Int pos) => AddToCollection(rightTiles, pos);
+    public void AddDownTiles(Vector2Int pos) => AddToCollection(downTiles, pos);
+    public void AddUpTiles(Vector2Int pos) => AddToCollection(upTiles, pos);
+    public void AddLeftTiles(Vector2Int pos) => AddToCollection(leftTiles, pos);
+    public void AddRightTiles(Vector2Int pos) => AddToCollection(rightTiles, pos);
     public void AddInnerTiles(Vector2Int pos) => AddToCollection(innerTiles, pos);
     public void AddCornerTiles(Vector2Int pos) => AddToCollection(cornerTiles, pos);
     public void AddPropPositions(Vector2Int pos) => AddToCollection(propPositions, pos);
 
     public void RemoveFloorTiles(Vector2Int pos) => RemoveFromCollection(floorTiles, pos);
-    public void RemoveNearWallTilesDown(Vector2Int pos) => RemoveFromCollection(downTiles, pos);
-    public void RemoveNearWallTilesUp(Vector2Int pos) => RemoveFromCollection(upTiles, pos);
-    public void RemoveNearWallTilesLeft(Vector2Int pos) => RemoveFromCollection(leftTiles, pos);
-    public void RemoveNearWallTilesRight(Vector2Int pos) => RemoveFromCollection(rightTiles, pos);
+    public void RemoveDownTiles(Vector2Int pos) => RemoveFromCollection(downTiles, pos);
+    public void RemoveUpTiles(Vector2Int pos) => RemoveFromCollection(upTiles, pos);
+    public void RemoveLeftTiles(Vector2Int pos) => RemoveFromCollection(leftTiles, pos);
+    public void RemoveRightTiles(Vector2Int pos) => RemoveFromCollection(rightTiles, pos);
     public void RemoveInnerTiles(Vector2Int pos) => RemoveFromCollection(innerTiles, pos);
     public void RemoveColliderTiles(Vector2Int pos) => RemoveFromCollection(cornerTiles, pos);
     public void RemovePropPositions(Vector2Int pos) => RemoveFromCollection(propPositions, pos);

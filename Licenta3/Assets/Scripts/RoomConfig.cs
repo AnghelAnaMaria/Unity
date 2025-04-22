@@ -6,7 +6,9 @@ using UnityEngine;
 public class RoomConfig
 {
     [SerializeField] private RoomType roomType;
-    [SerializeField] private Vector2Int roomDimensions;
+
+    [SerializeField, Tooltip("Dimensions must be at least 2x2.")] private Vector2Int roomDimensions = new Vector2Int(2, 2);
+
 
     public RoomType GetRoomType() => roomType;
     public Vector2Int GetRoomDimensions() => roomDimensions;
