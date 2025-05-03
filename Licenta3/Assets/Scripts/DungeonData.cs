@@ -101,7 +101,7 @@ public class DungeonData : MonoBehaviour
         }
         return foundRoom;
     }
-    public HashSet<Vector2Int> GetDungeonHalliles() => new HashSet<Vector2Int>(dungeonHallTiles);
+    public HashSet<Vector2Int> GetDungeonHallTiles() => new HashSet<Vector2Int>(dungeonHallTiles);
     public HashSet<Vector2Int> GetDungeonAllTiles() => new HashSet<Vector2Int>(dungeonAllTiles);
     public List<Vector2Int> GetColliderTiles() => new List<Vector2Int>(colliderTiles);
     public IReadOnlyCollection<Vector2Int> GetDungeonLeftWallTiles() => dungeonLeftTiles;
@@ -155,7 +155,7 @@ public class DungeonData : MonoBehaviour
 
 
     public bool RemoveDungeonRoomTiles(Vector2Int pos) => RemoveFromCollection(dungeonRoomTiles, pos);
-    public bool RemoveDungeonHallTiles(Vector2Int pos) => RemoveFromCollection(dungeonHallTiles, pos);
+    public bool RemoveDungeonHallTile(Vector2Int pos) => RemoveFromCollection(dungeonHallTiles, pos);
     public bool RemoveDungeonAllTiles(Vector2Int pos) => RemoveFromCollection(dungeonAllTiles, pos);
     public bool RemoveColliderTiles(Vector2Int pos) => RemoveFromCollection(colliderTiles, pos);
     public bool RemoveDungeonDownWallTiles(Vector2Int pos) => RemoveFromCollection(dungeonDownTiles, pos);
