@@ -10,45 +10,37 @@ namespace WaveFunctionCollapse
     {
         float totalFrequency = 0;
         float totalFrequencyLog = 0;
-        PatternManager patternManager;
+        PatternManager patternManager;//rezultatul= grila de int care reprezinta grila finala de Tiles
 
         //Metode:
-        public CoreHelper(PatternManager manager)
+        public CoreHelper(PatternManager patternManager)
         {
-            patternManager = manager;
-
-            // for (int i = 0; i < patternManager.GetNumberOfPatterns(); i++)
-            // {
-            //     totalFrequency += patternManager.GetPatternFrequency(i);
-            // }
-            // totalFrequencyLog = Mathf.Log(totalFrequency, 2);
+            this.patternManager = patternManager;
         }
 
-        public int SelectSolutionPatternFromFrequency(List<int> possibleValues)
+        public int SelectSolutionPatternFromFrequency(List<int> possibleValues)//possibleValues= lista de patterns posibile pt o celula din Tilemap
         {
-            // Obținem lista de greutăți (frecvențe relative) pentru fiecare index
-            List<float> valueFrequenciesFractions = GetListOfWeightsFromIndices(possibleValues);
-            // Alegem un punct aleator în intervalul [0, suma tuturor greutăților)
-            float randomValue = UnityEngine.Random.Range(0f, valueFrequenciesFractions.Sum());
+            List<float> valueFrequenciesFractions = GetListOfWeightsFromIndices(possibleValues);//lista de greutăți (frecvențe relative) pentru fiecare pattern
+            float randomValue = UnityEngine.Random.Range(0f, valueFrequenciesFractions.Sum());//alegem un punct aleator în intervalul [0, suma tuturor greutăților)
 
             float sum = 0f;
             int index = 0;
-            // Parcurgem greutățile și acumulăm până depășim randomValue
+            //parcurgem greutățile și acumulăm până depășim randomValue
             foreach (var item in valueFrequenciesFractions)
             {
                 sum += item;
                 if (randomValue <= sum)
                 {
-                    // Returnăm indexul corespunzător
+                    //returnăm pozitia pattern-ului din lista data- adica poziia din possibleValues
                     return index;
                 }
                 index++;
             }
-            // În caz că nu am returnat în buclă, alegem ultimul index
+            //in caz că nu am returnat în buclă, alegem ultima pozitie din lista
             return index - 1;
         }
 
-        private List<float> GetListOfWeightsFromIndices(List<int> possibleValues)
+        private List<float> GetListOfWeightsFromIndices(List<int> possibleValues)////possibleValues= lista de patterns
         {
             var valueFrequencies = possibleValues.Aggregate(new List<float>(), (acc, val) =>
             {
@@ -56,61 +48,65 @@ namespace WaveFunctionCollapse
                 return acc;
             },
             acc => acc).ToList();
-            return valueFrequencies;
+            return valueFrequencies;//returnam lista de frecvente (frecventele pt toate pattern-urile)
         }
 
-        public List<VectorPair> Create4DirectionNeighbours(Vector2Int cellCoordinates, Vector2Int previousCell)
+        public List<VectorPair> Create4DirectionNeighbours(Vector2Int cellCoordinates, Vector2Int previousCell)//retinem celula din Tilemap de unde pornim si vecinii celulei pt cele 4 directii
         {
-            List<VectorPair> list = new List<VectorPair>()
-        {
-            new VectorPair(cellCoordinates, cellCoordinates + new Vector2Int(1,  0), Direction.Right, previousCell),
-            new VectorPair(cellCoordinates, cellCoordinates + new Vector2Int(-1, 0), Direction.Left,  previousCell),
-            new VectorPair(cellCoordinates, cellCoordinates + new Vector2Int(0,  1), Direction.Up,    previousCell),
-            new VectorPair(cellCoordinates, cellCoordinates + new Vector2Int(0, -1), Direction.Down,  previousCell),
-        };
+            List<VectorPair> list = new List<VectorPair>(){
+                new VectorPair(cellCoordinates, cellCoordinates + new Vector2Int(1,  0), Direction.Right, previousCell),
+                new VectorPair(cellCoordinates, cellCoordinates + new Vector2Int(-1, 0), Direction.Left,  previousCell),
+                new VectorPair(cellCoordinates, cellCoordinates + new Vector2Int(0,  1), Direction.Up,    previousCell),
+                new VectorPair(cellCoordinates, cellCoordinates + new Vector2Int(0, -1), Direction.Down,  previousCell),
+            };
+
             return list;
         }
 
-        public List<VectorPair> Create4DirectionNeighbours(Vector2Int cellCoordinate)
+        public List<VectorPair> Create4DirectionNeighbours(Vector2Int cellCoordinate)//pentru apelul inițial (unde nu există celulă anterioară)
         {
             return Create4DirectionNeighbours(cellCoordinate, cellCoordinate);
         }
 
-        public float CalculateEntropy(Vector2Int position, OutputGrid outputGrid)
+        public float CalculateEntropy(Vector2Int position, OutputGrid outputGrid)//Shannon entropy(functioneaza pt frecvente NORMALIZATE)
         {
-            float sum = 0;
-            foreach (var possibleIndex in outputGrid.GetPossibleValuesForPosition(position))
+            float sum = 0f;
+
+            //Shannon entropy pt o celula:
+            foreach (var possibleIndex in outputGrid.GetPossibleValuesForPosition(position))//pt fiecare pattern care poate sta in celula Vector2Int position
             {
-                totalFrequency += patternManager.GetPatternFrequency(possibleIndex);
-                sum += patternManager.GetPatternFrequencyLog2(possibleIndex);
+                float frequency = patternManager.GetPatternFrequency(possibleIndex);// pᵢ =frecventa pt pattern =probabiliatea pt pattern; Stim ca aceste pᵢ sun normalizate
+                if (frequency > 0f)//ca să evităm 0 * log2(0)
+                {
+                    sum -= frequency * patternManager.GetPatternFrequencyLog2(possibleIndex);// -∑pᵢ*log₂(pᵢ)
+                }
             }
-            totalFrequencyLog = Mathf.Log(totalFrequency, 2);
-            return totalFrequencyLog - (sum / totalFrequency);
+
+            return sum;
         }
 
-        public List<VectorPair> CheckIfNeighboursAreCollapsed(VectorPair pairToCheck, OutputGrid outputGrid)
+        public List<VectorPair> CheckIfNeighboursAreCollapsed(VectorPair pairToCheck, OutputGrid outputGrid)//returnam vecinii necolapsati ai unei celule din grid (ai celulei tinta)
         {
             return Create4DirectionNeighbours(pairToCheck.CellToPropagatePosition, pairToCheck.BaseCellPosition)
-                .Where(x => outputGrid.CheckIfValidPosition(x.CellToPropagatePosition)
-                         && outputGrid.CheckIfCellIsCollapsed(x.CellToPropagatePosition) == false)
+                .Where(x => outputGrid.CheckIfValidCoords(x.CellToPropagatePosition) && outputGrid.CheckIfCellIsCollapsed(x.CellToPropagatePosition) == false)//x aici nu e coordonata X, ci un VectorPair, deci un (x,y)
                 .ToList();
         }
 
-        public bool CheckCellSolutionForCollision(Vector2Int cellCoordinates, OutputGrid outputGrid)
+        public bool CheckCellSolutionForCollision(Vector2Int cellCoordinates, OutputGrid outputGrid)//verifica daca o celula colapsata se potriveste cu vecinii (ca sa nu generam contradictii)
         {
-            foreach (var neighbour in Create4DirectionNeighbours(cellCoordinates))
+            foreach (var neighbour in Create4DirectionNeighbours(cellCoordinates))//pt fiecare vecin VectorPair
             {
-                if (outputGrid.CheckIfValidPosition(neighbour.CellToPropagatePosition) == false)
+                if (outputGrid.CheckIfValidCoords(neighbour.CellToPropagatePosition) == false)//daca vecinul e in exteriorul grilei il sarim
                     continue;
 
-                var possibleIndices = new HashSet<int>();
-                foreach (var patternIndexAtNeighbour in outputGrid.GetPossibleValuesForPosition(neighbour.CellToPropagatePosition))
+                HashSet<int> possibleIndices = new HashSet<int>();
+                foreach (int patternIndex in outputGrid.GetPossibleValuesForPosition(neighbour.CellToPropagatePosition))//pt fiecare pattern care poate sta pe pozitia vecinului
                 {
-                    var possibleNeighboursForBase = patternManager.GetPossibleNeighboursForPatternInDirection(patternIndexAtNeighbour, neighbour.DirectionFromBase.GetOppositeDirectionTo());
+                    HashSet<int> possibleNeighboursForBase = patternManager.GetPossibleNeighboursForPatternInDirection(patternIndex, neighbour.DirectionFromBase.GetOppositeDirectionTo());//de la vecin ne intoarcem la celula curenta si vedem ce patterns pot sta pe celula curenta (patterns care se potrivesc cu vecinul)
                     possibleIndices.UnionWith(possibleNeighboursForBase);
                 }
 
-                if (possibleIndices.Contains(outputGrid.GetPossibleValuesForPosition(cellCoordinates).First()) == false)
+                if (possibleIndices.Contains(outputGrid.GetPossibleValuesForPosition(cellCoordinates).First()) == false)//verificam daca printre patterns ale celulei curente se afla si cel colapsat -> daca da, nu avem contradictie
                     return true;
             }
 

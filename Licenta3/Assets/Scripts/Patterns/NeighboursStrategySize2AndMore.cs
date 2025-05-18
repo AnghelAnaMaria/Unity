@@ -5,18 +5,17 @@ using UnityEngine;
 
 
 namespace WaveFunctionCollapse
-{
+{//Strategia 2: consideram 2 patterns N*N ca fiind vecine daca au (N-1)*N tiles egale
     public class NeighboursStrategySize2OrMore : IFindNeighbourStrategy
     {
-        public Dictionary<int, PatternNeighbours> FindNeighbours(PatternDataResults patternFinderResult)
+        public Dictionary<int, PatternNeighbours> FindNeighbours(PatternDataResults patternDataResults)//in PatternDataResults avem matricea de pattern-uri din care salvam pt fiecare pattern care ii sunt vecinii.
         {
-            //Dicționarul final: pentru fiecare pattern‐index, setul posibil de vecini
             var result = new Dictionary<int, PatternNeighbours>();
-            //Parcurgem fiecare pattern sursă
-            foreach (var patternDataToCheck in patternFinderResult.PatternIndexDictionary)
-            {
-                foreach (var possibleNeighbourForPattern in patternFinderResult.PatternIndexDictionary)
-                {
+
+            foreach (var patternDataToCheck in patternDataResults.patternIndexDictionary)//pt fiecare pattern (cu index unic din dictionar)
+            {//Prima buclă alege pattern-ul „sursă” A
+                foreach (var possibleNeighbourForPattern in patternDataResults.patternIndexDictionary)//pt fiecare pattern
+                {//A doua buclă îl ia pe fiecare alt pattern B (posibil vecin)
                     FindNeighboursInAllDirections(result, patternDataToCheck, possibleNeighbourForPattern);
                 }
             }
@@ -26,17 +25,15 @@ namespace WaveFunctionCollapse
 
         private void FindNeighboursInAllDirections(Dictionary<int, PatternNeighbours> result, KeyValuePair<int, PatternData> patternDataToCheck, KeyValuePair<int, PatternData> possibleNeighbourForPattern)
         {
-            foreach (Direction dir in Enum.GetValues(typeof(Direction)))
+            foreach (Direction dir in Enum.GetValues(typeof(Direction)))//cautam in toate directiile
             {
-                // Dacă cele două pattern‐uri se potrivesc pe direcția curentă
-                if (patternDataToCheck.Value.CompareGrid(dir, possibleNeighbourForPattern.Value))
+                if (patternDataToCheck.Value.CompareGrid(dir, possibleNeighbourForPattern.Value))//cautam ca pattern-urile (subgrilele N*N) sa aiba (N-1)*N casute egale
                 {
-                    // Asigură existența unui entry pentru sursă
+                    //Daca au casutele mentionate egale, salvam pattern-urile ca fiind vecine.
                     if (!result.ContainsKey(patternDataToCheck.Key))
                     {
                         result.Add(patternDataToCheck.Key, new PatternNeighbours());
                     }
-                    // Adaugă indexul vecinului valid în dicționarul PatternNeighbours
                     result[patternDataToCheck.Key].AddPatternToDictionary(dir, possibleNeighbourForPattern.Key);
                 }
             }

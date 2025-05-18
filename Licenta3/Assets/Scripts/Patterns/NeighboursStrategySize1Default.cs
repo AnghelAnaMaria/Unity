@@ -4,33 +4,27 @@ using UnityEngine;
 
 
 namespace WaveFunctionCollapse
-{
+{//Strategia 1: consideram 2 patterns N*N vecine daca sunt situate una langa alta in matricea de grile din PatternDataResults
     public class NeighbourStrategySize1Default : IFindNeighbourStrategy
     {
-        public Dictionary<int, PatternNeighbours> FindNeighbours(PatternDataResults patternFinderResult)
+        public Dictionary<int, PatternNeighbours> FindNeighbours(PatternDataResults patternDataResults)//PatternDataResults are matricea de patterns
         {
             var result = new Dictionary<int, PatternNeighbours>();
-            FindNeighboursForEachPattern(patternFinderResult, result);
+            FindNeighboursForEachPattern(patternDataResults, result);
             return result;
         }
 
-        private void FindNeighboursForEachPattern(PatternDataResults patternFinderResult, Dictionary<int, PatternNeighbours> result)
+        private void FindNeighboursForEachPattern(PatternDataResults patternDataResults, Dictionary<int, PatternNeighbours> result)
         {
-            // parcurgem fiecare poziție din gridul de pattern-uri
-            for (int row = 0; row < patternFinderResult.GetGridLengthY(); row++)
+            for (int row = 0; row < patternDataResults.GetGridLengthY(); row++)
             {
-                for (int col = 0; col < patternFinderResult.GetGridLengthX(); col++)
+                for (int col = 0; col < patternDataResults.GetGridLengthX(); col++)
                 {
-                    // aflăm vecinii la N=1 în toate direcțiile
-                    PatternNeighbours neighbours =
-                        PatternFinder.CheckNeighboursInEachDirection(col, row, patternFinderResult);
+                    //pt fiecare pattern gasim pattern-urile vecine din matricea de patterns de la PaternDataResults pt fiecare directie(un vecin sus, unul jos etc.)
+                    PatternNeighbours neighbours = PatternFinder.CheckNeighboursInEachDirection(col, row, patternDataResults);
 
-                    // adăugăm în dicționarul final (se acumulează seturile de vecini)
-                    PatternFinder.AddNeighboursToDictionary(
-                        result,
-                        patternFinderResult.GetIndexAt(col, row),
-                        neighbours
-                    );
+                    //adăugăm în dicționarul final si avem result= Dictionary<int, PatternNeighbours>
+                    PatternFinder.AddNeighboursToDictionary(result, patternDataResults.GetIndexAt(col, row), neighbours);
                 }
             }
         }

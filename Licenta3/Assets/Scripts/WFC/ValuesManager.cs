@@ -6,12 +6,13 @@ using Helpers;
 
 
 namespace WaveFunctionCollapse
-{
+{///Clasa ValuesManager<T> are rolul de a „traduce” grila de valori generice (IValue<T>[][]) într-o reprezentare pe bază de indici 
+///întregi și de a oferi utilitare pentru extragerea de „pattern-uri” (sub-matrici) cu wrap-around.
     public class ValuesManager<T>
     {
-        int[][] grid;
-        Dictionary<int, IValue<T>> valueIndexDictionary = new Dictionary<int, IValue<T>>();
-        int index = 0;
+        int[][] grid;//grid[y][x] va conține, la final, indicele valorii aflate în poziția (x,y)
+        Dictionary<int, IValue<T>> valueIndexDictionary = new Dictionary<int, IValue<T>>();//valueIndexDictionary mapează fiecare indice la obiectul IValue<T> original
+        int index = 0;//index este contorul pe care îl incrementăm de fiecare dată când întâlnim o valoare nouă
 
         public ValuesManager(IValue<T>[][] gridOfValues)
         {
@@ -30,39 +31,41 @@ namespace WaveFunctionCollapse
             }
         }
 
+        //Mapare
+        //– Dacă am văzut valoarea anterior, folosesc același indice (kv.Key).
+        //– Altfel îi atribui index și apoi index++.
+        private void SetIndexToGridPosition(IValue<T>[][] gridOfValues, int row, int col)
+        {
+            var value = gridOfValues[row][col];
+
+            if (valueIndexDictionary.ContainsValue(value))// vrem ca aceleași valori (IValue<T>) să primească același număr. De aceea lucram cu ContainsValue + Equals.
+            {
+                var kv = valueIndexDictionary.FirstOrDefault(x => x.Value.Equals(value));//kv e de forma (cheie, valoare)
+                grid[row][col] = kv.Key;//adaug in gridul int[][]
+            }
+            else
+            {
+                grid[row][col] = index;//adaug in gridul int[][]
+                valueIndexDictionary.Add(index, value);
+                index++;
+            }
+        }
+
         internal Vector2 GetGridSize()
         {
             if (grid == null)
             {
                 return Vector2.zero;
             }
-            return new Vector2(grid[0].Length, grid.Length);
+            return new Vector2(grid[0].Length, grid.Length);// Vector2(x,y) cu :x = numărul de coloane (lăţimea grilei)
+                                                            //                  y = numărul de rânduri (înălţimea grilei)
         }
 
-
-        private void SetIndexToGridPosition(IValue<T>[][] gridOfValues, int row, int col)
-        {
-            var value = gridOfValues[row][col];
-            if (valueIndexDictionary.ContainsValue(value))
-            {
-                var kv = valueIndexDictionary.FirstOrDefault(x => x.Value.Equals(value));
-                grid[row][col] = kv.Key;
-            }
-            else
-            {
-                grid[row][col] = index;
-                valueIndexDictionary.Add(index, value);
-                index++;
-            }
-        }
-
-        public int GetGridValue(int x, int y)
+        public int GetGridValue(int x, int y)// conventie API
         {
             if (x >= grid[0].Length || y >= grid.Length || x < 0 || y < 0)
             {
-                throw new System.IndexOutOfRangeException(
-                    "Grid does not contain x: " + x + " y: " + y + " value"
-                );
+                throw new System.IndexOutOfRangeException("Grid does not contain x: " + x + " y: " + y + " value");
             }
             return grid[y][x];
         }
@@ -78,8 +81,8 @@ namespace WaveFunctionCollapse
 
         public int GetGridValuesIncludingOffset(int x, int y)
         {
-            int yMax = grid.Length;
-            int xMax = grid[0].Length;
+            int yMax = grid.Length;// câte rânduri există → limita superioară pentru y
+            int xMax = grid[0].Length;// câte coloane există → limita superioară pentru x
 
             if (x < 0 && y < 0)
             {
@@ -118,24 +121,18 @@ namespace WaveFunctionCollapse
 
         public int[][] GetPatternValuesFromGridAt(int x, int y, int patternSize)
         {
-            // Creăm un jagged array patternSize × patternSize
-            int[][] arrayToReturn = MyCollectionExtension
-                .CreateJaggedArray<int[][]>(patternSize, patternSize);
+            int[][] arrayToReturn = MyCollectionExtension.CreateJaggedArray<int[][]>(patternSize, patternSize);//jagged array patternSize × patternSize
 
-            // Pentru fiecare poziție din pattern
             for (int row = 0; row < patternSize; row++)
             {
                 for (int col = 0; col < patternSize; col++)
                 {
                     // Extragem valoarea din grilă cu offset (cu wrap-around)
-                    arrayToReturn[row][col] = GetGridValuesIncludingOffset(
-                        x + col,
-                        y + row
-                    );
+                    arrayToReturn[row][col] = GetGridValuesIncludingOffset(x + col, y + row);
                 }
             }
 
-            return arrayToReturn;
+            return arrayToReturn;//jagged array de int 
         }
 
 

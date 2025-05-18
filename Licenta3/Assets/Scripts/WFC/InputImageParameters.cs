@@ -12,10 +12,10 @@ namespace WaveFunctionCollapse
     public class InputImageParameters
     {
         public Vector2Int? bottomRightTileCoords = null;
-        public Vector2Int? topLeftTileCoords = null;
-        public BoundsInt inputTileMapBounds;//struct
-        public TileBase[] inputTilemapTilesArray;
-        public Queue<TileContainer> stackOfTiles = new Queue<TileContainer>();
+        public Vector2Int? topLeftTileCoords = null; //coordOpt poate fi null sau un Vector2Int valid
+        public BoundsInt inputTileMapBounds;//struct in care retin marginile x si y ale Tilemap-ului din scena
+        public TileBase[] inputTilemapTilesArray;//aici pun TileBase-urile din scena Unity (fac asta in constructor)
+        public Queue<TileContainer> stackOfTiles = new Queue<TileContainer>();//stack cu referinte la Tilebase si pozitia lor (x si y)
         private int width = 0,
                     height = 0;
         private Tilemap inputTilemap;//referinta la Tilemap din scena de unde ne salvam datele 
@@ -44,7 +44,7 @@ namespace WaveFunctionCollapse
         {
             this.inputTilemap = inputTilemap;
             this.inputTileMapBounds = this.inputTilemap.cellBounds;//cellBounds e fct in Unity, in clasa Tilemap.
-            this.inputTilemapTilesArray = this.inputTilemap.GetTilesBlock(this.inputTileMapBounds);//extragi toate tile-urile din acel dreptunghi, sub forma unui array 1D. GetTilesBlock e fct in Unity, in clasa Tilemap.
+            this.inputTilemapTilesArray = this.inputTilemap.GetTilesBlock(this.inputTileMapBounds);//extragi toate tile-urile TileBase din acel dreptunghi, sub forma unui array 1D (de la stanga jos pana la dreapta sus). GetTilesBlock e fct in Unity, in clasa Tilemap.
             ExtractNonEmptyTiles();//parcurgi acel array pentru a identifica zonele nenule
             VerifyInputTiles();//validezi că ai o zonă perfect umplută (dreptunghi fără goluri)
         }
@@ -110,4 +110,3 @@ namespace WaveFunctionCollapse
 
     }
 }
-

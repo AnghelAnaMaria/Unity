@@ -6,14 +6,17 @@ using Helpers;
 
 namespace WaveFunctionCollapse
 {//Pattern class
+ //Clasa Pattern gestionează atât stocarea și identificarea (prin hash și index), cât și testarea compatibilității locale a 
+ //pattern-urilor, element esențial pentru construcția grafului de adiacențe din WFC.
     public class Pattern
     {
         private int index;//index-ul numeric unic al acestui pattern
         private int[][] grid;//conţine valorile (indici) în forma sub‐grilei N×N
         public string HashIndex { get; set; } //HashIndex = identificator unic al pattern-ului, calculat o singură dată.
                                               //ţine şirul hex (de tip string) rezultat din aplicarea unui algoritm MD5 pe valorile întregi ale pattern-ului (sub-grila N×N)
-        public int Index => index; //expune _index în mod readonly
 
+
+        public int Index => index; //expune index în mod readonly
 
         //Metode:
         public Pattern(int[][] grid, string hashCode, int index)
@@ -62,7 +65,7 @@ namespace WaveFunctionCollapse
             int[][] gridPartToCompare;
             switch (dir)
             {
-                case Direction.Up:
+                case Direction.Up://extrage marginea pattern-ului curent pe direcţia „sus” pentru a o compara cu marginea „jos” a unui alt pattern
                     gridPartToCompare = MyCollectionExtension.CreateJaggedArray<int[][]>(grid.Length - 1, grid.Length);
                     CreatePartOfGrid(0, grid.Length, 1, grid.Length, gridPartToCompare);
                     break;
@@ -93,12 +96,12 @@ namespace WaveFunctionCollapse
         {
             List<int> tempList = new List<int>();
 
-            //Pas 1: Creăm o listă în care punem “laolaltă” toate valorile din sub-dreptunghiul _grid[ymin..ymax-1][xmin..xmax-1].
-            for (int row = ymin; row < ymax; row++)
+            //Pas 1: Creăm o listă în care punem “laolaltă” toate valorile din sub-dreptunghiul grid[ymin..ymax-1][xmin..xmax-1].
+            for (int row = ymin; row < ymax; row++)//pe randuri (pt ca pe axa OY citim randurile)
             {
-                for (int col = xmin; col < xmax; col++)
+                for (int col = xmin; col < xmax; col++)//pe coloane
                 {
-                    tempList.Add(grid[row][col]);
+                    tempList.Add(grid[row][col]);//punem in tempList in ordinea din jagged array
                 }
             }
             // Acum tempList conține H * W elemente,
@@ -110,7 +113,7 @@ namespace WaveFunctionCollapse
             {
                 int x = i % gridPartToCompare.Length;
                 int y = i / gridPartToCompare.Length;
-                gridPartToCompare[x][y] = tempList[i];
+                gridPartToCompare[x][y] = tempList[i];//pt ca in tempList avem ordinea din jagged array a elementelor int
             }
             // Luăm lista “aplatizată” și o scriem în target, care e un array pătrat [H][W] (în cazul pattern-urilor, H == W == patternSize-1 sau patternSize).
             // Folosim div și mod ca să transformăm indexul liniar iîn coordonate 2D (tx, ty).

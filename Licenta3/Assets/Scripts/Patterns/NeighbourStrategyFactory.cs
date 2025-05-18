@@ -6,12 +6,15 @@ using UnityEngine;
 
 
 namespace WaveFunctionCollapse
-{
+{//Clasa care alege o strategie din cele 2
+ //Pas 1: prima oara (in WFC) cream obiectul NeighbourStrategyFactory deci apelam LoadTypesIFindNeighbourStrategy() -> avem in strategies ca Types: NeighbourStrategySize1Default si NeighboursStrategySize2OrMore (adica 2 strategii posibile)
+ //Pas 2 : dupa (in WFC workflow) apelam CreateInstance(sring conventie) ca sa cream o instanta pt un obiect (ori de Type NeighbourStrategySize1Default ori de Type NeighboursStrategySize2OrMore) -> ramanem cu un singur Type (adica o singura strategie la rulare)
     public class NeighbourStrategyFactory
     {
-        //maps the lowercase class-name of each IFindNeighbourStrategy implementation to its Type
-        Dictionary<string, Type> strategies;
+        private Dictionary<string, Type> strategies;//un dicționar (nume clasa, Type clasa)
 
+
+        //Pas 1:
         public NeighbourStrategyFactory()
         {
             LoadTypesIFindNeighbourStrategy();
@@ -21,36 +24,39 @@ namespace WaveFunctionCollapse
         {
             strategies = new Dictionary<string, Type>();
 
-            // Get all types in this assembly
+            //obținem toate tipurile din assembly-ul curent (de la toate clasele din proiect adica)
             Type[] typesInThisAssembly = Assembly.GetExecutingAssembly().GetTypes();
+
             foreach (var type in typesInThisAssembly)
             {
-                // If this type implements IFindNeighbourStrategy, register it
+                //dacă tipul implementează IFindNeighbourStrategy(adica daca avem NeighbourStrategySize1Default sau NeighboursStrategySize2OrMore)
                 if (type.GetInterface(typeof(IFindNeighbourStrategy).ToString()) != null)
                 {
+                    //îl înregistrăm sub cheia numelui clasei, în lowercase
                     strategies.Add(type.Name.ToLower(), type);
                 }
             }
         }
 
-        internal IFindNeighbourStrategy CreateInstance(string nameOfStrategy)
+        //Pas 2:
+        internal IFindNeighbourStrategy CreateInstance(string nameOfStrategy)//nameOfStrategy= numele cu care apelez eu in WFC Algorythm
         {
-            // try requested strategy
-            var t = GetTypeToCreate(nameOfStrategy);
-            // fallback to "more" if not found
-            if (t == null)
-                t = GetTypeToCreate("more");
-            // instantiate via reflection
-            return Activator.CreateInstance(t) as IFindNeighbourStrategy;
+            Type typeForStrategy = GetTypeToCreate(nameOfStrategy);//Type pt numele nameOfStrategy
+
+            if (typeForStrategy == null)
+                typeForStrategy = GetTypeToCreate("more");//adica luam Type=NeighboursStrategySize2OrMore
+
+            return Activator.CreateInstance(typeForStrategy) as IFindNeighbourStrategy;//Creează dinamic un obiect al clasei NeighbourStrategySize1Default sau NeighboursStrategySize2OrMore (ADICA O STRATEGIE)
         }
 
-        private Type GetTypeToCreate(string nameOfStrategy)
+        private Type GetTypeToCreate(string nameOfStrategy)//nameOfStrategy= numele cu care apelez eu in WFC Algorythm
         {
-            foreach (var possibleStrategy in strategies)
+            foreach (var possibleStrategy in strategies)//pt fiecare pereche (string, Type) in strategies
             {
-                // match if the registered key contains the requested substring
+                //ex: daca apelam cu nameOfStrategy="size1" programul o sa stie ca vreau valoarea Type=NeighbourStrategySize1Default
+                //ex: daca apelam cu nameOfStrategy="size2" programul o sa stie ca vreau valoarea Type=NeighboursStrategySize2OrMore
                 if (possibleStrategy.Key.Contains(nameOfStrategy))
-                    return possibleStrategy.Value;
+                    return possibleStrategy.Value;//returnam Type-ul
             }
 
             return null;

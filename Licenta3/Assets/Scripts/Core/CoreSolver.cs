@@ -8,10 +8,10 @@ namespace WaveFunctionCollapse
 {
     public class CoreSolver
     {
-        PatternManager patternManager;
-        OutputGrid outputGrid;
-        CoreHelper coreHelper;
-        PropagationHelper propagationHelper;
+        PatternManager patternManager;//rezultatul= grila de int care reprezinta grila finala de Tiles
+        OutputGrid outputGrid;//starea curenta a WFC (multimea de pattern-uri inca posibile pt fiecare celula)
+        CoreHelper coreHelper;//evalueaza entropia, genereaza vecinii, detecteaza coliziunile in timpul propagarii
+        PropagationHelper propagationHelper;//logica pt VectorPair
 
 
         //Metode:
@@ -25,11 +25,11 @@ namespace WaveFunctionCollapse
 
         public void Propagate()
         {
-            // Cât timp mai sunt perechi de procesat
+            //Cât timp mai sunt perechi de procesat in coada
             while (propagationHelper.PairsToPropagate.Count > 0)
             {
-                var propagatePair = propagationHelper.PairsToPropagate.Dequeue();
-                if (propagationHelper.CheckIfPairShouldBeProcessed(propagatePair))
+                VectorPair propagatePair = propagationHelper.PairsToPropagate.Dequeue();//luam din coada
+                if (propagationHelper.CheckIfPairShouldBeProcessed(propagatePair))//daca celula tinta nu e in afara gridului si nu ne intoarcem inapoi la celula baza
                 {
                     ProcessCell(propagatePair);
                 }
@@ -39,8 +39,7 @@ namespace WaveFunctionCollapse
                     return;
                 }
             }
-            // Dacă nu mai avem ce propaga și nu mai avem celule cu entropie:
-            // și totuși există un conflict, setăm flag-ul de conflict
+            // Dacă nu mai avem ce propaga și nu mai avem celule cu entropie: și totuși există un conflict, setăm flag-ul de conflict
             if (propagationHelper.CheckForConflicts() && propagationHelper.PairsToPropagate.Count == 0 && propagationHelper.LowEntropySet.Count == 0)
             {
                 propagationHelper.SetConflictFlag();
@@ -49,9 +48,9 @@ namespace WaveFunctionCollapse
 
         private void ProcessCell(VectorPair propagatePair)
         {
-            if (outputGrid.CheckIfCellIsCollapsed(propagatePair.CellToPropagatePosition))
+            if (outputGrid.CheckIfCellIsCollapsed(propagatePair.CellToPropagatePosition))//daca celula tinta e colapsata
             {
-                propagationHelper.EnqueueUncollapseNeighbours(propagatePair);
+                propagationHelper.EnqueueUncollapseNeighbours(propagatePair);//bagam vecinii necolapsati ai celulei tinta in coada
             }
             else
             {
@@ -61,12 +60,12 @@ namespace WaveFunctionCollapse
 
         private void PropagateNeighbour(VectorPair propagatePair)
         {
-            var possibleValuesAtNeighbour = outputGrid.GetPossibleValuesForPosition(propagatePair.CellToPropagatePosition);
-            int startCount = possibleValuesAtNeighbour.Count;
+            HashSet<int> possibleValuesAtNeighbour = outputGrid.GetPossibleValuesForPosition(propagatePair.CellToPropagatePosition);//patterns care pot sta in celula tinta
+            int startCount = possibleValuesAtNeighbour.Count;//cate celule pot sta in celula tinta
 
-            RemoveImpossibleNeighbours(propagatePair, possibleValuesAtNeighbour);
+            RemoveImpossibleNeighbours(propagatePair, possibleValuesAtNeighbour);//scapam de patterns incompatibile pt celula tinta
 
-            int newPossiblePatternCount = possibleValuesAtNeighbour.Count;
+            int newPossiblePatternCount = possibleValuesAtNeighbour.Count;//cu cate pattern-uri compatibile am ramas
             propagationHelper.AnalyzePropagationResults(propagatePair, startCount, newPossiblePatternCount);
         }
 
@@ -74,53 +73,48 @@ namespace WaveFunctionCollapse
         {
             HashSet<int> possibleIndices = new HashSet<int>();
 
-            foreach (var patternIndexAtBase in outputGrid.GetPossibleValuesForPosition(propagatePair.BaseCellPosition))
+            foreach (int patternIndexAtBase in outputGrid.GetPossibleValuesForPosition(propagatePair.BaseCellPosition))//pt fiecare pattern care poate sta in celula baza
             {
-                var possibleNeighboursForBase = patternManager.GetPossibleNeighboursForPatternInDirection(patternIndexAtBase, propagatePair.DirectionFromBase);
+                HashSet<int> possibleNeighboursForBase = patternManager.GetPossibleNeighboursForPatternInDirection(patternIndexAtBase, propagatePair.DirectionFromBase);//ne uitam la patterns vecine (in sus/ jos/ stanga/ dreapta) pattern-ului din celula de baza
                 possibleIndices.UnionWith(possibleNeighboursForBase);
             }
 
-            possibleValuesAtNeighbour.IntersectWith(possibleIndices);
+            possibleValuesAtNeighbour.IntersectWith(possibleIndices);//adica scapam de patterns vecine incompatibile
         }
 
         public Vector2Int GetLowestEntropyCell()
         {
             if (propagationHelper.LowEntropySet.Count <= 0)
             {
-                return outputGrid.GetRandomCell();
+                return outputGrid.GetRandomCellCoords();
             }
             else
             {
-                var lowestEntropyElement = propagationHelper.LowEntropySet.First();
-                Vector2Int returnVector = lowestEntropyElement.Position;
-                propagationHelper.LowEntropySet.Remove(lowestEntropyElement);
-                return returnVector;
+                LowEntropyCell lowestEntropyElement = propagationHelper.LowEntropySet.First();//luam din set
+                Vector2Int returnVector = lowestEntropyElement.position;
+                propagationHelper.LowEntropySet.Remove(lowestEntropyElement);//eliminam din set
+                return returnVector;//returnam pozitia (x,y) a celulei cu entropie minima
             }
         }
 
         public void CollapseCell(Vector2Int cellCoordinates)
         {
-            // Obținem lista posibilităților pentru celula dată
-            var possibleValues = outputGrid.GetPossibleValuesForPosition(cellCoordinates).ToList();
+            List<int> possibleValues = outputGrid.GetPossibleValuesForPosition(cellCoordinates).ToList();//construiesc lista de pattern-uri (ID-uri) care mai pot sta pe celulă
 
-            // Dacă nu există opțiuni sau doar una, nu facem nimic
             if (possibleValues.Count == 0 || possibleValues.Count == 1)
                 return;
 
-            // Alegem soluția bazată pe frecvențe
-            int index = coreHelper.SelectSolutionPatternFromFrequency(possibleValues);
-            outputGrid.SetPatternOnPosition(cellCoordinates.x, cellCoordinates.y, possibleValues[index]);
+            int index = coreHelper.SelectSolutionPatternFromFrequency(possibleValues);//alegem, din lista de mai sus, soluția(index-ul) bazată pe frecvențe
+            outputGrid.SetPatternOnPosition(cellCoordinates.x, cellCoordinates.y, possibleValues[index]);//salvam pattern-ul pt celula
 
-            // Verificăm dacă soluția aleasă cauzează un conflict
+            //verificăm dacă soluția aleasă cauzează un conflict
             if (coreHelper.CheckCellSolutionForCollision(cellCoordinates, outputGrid) == false)
             {
-                // Dacă nu e conflict, adăugăm perechile noi pentru propagare
-                propagationHelper.AddNewPairsToPropagateQueue(cellCoordinates, cellCoordinates);
+                propagationHelper.AddNewPairsToPropagateQueue(cellCoordinates, cellCoordinates);//dacă nu e conflict, adăugăm vecinii celulei in coada
             }
             else
             {
-                // Dacă e conflict, setăm flag-ul de conflict
-                propagationHelper.SetConflictFlag();
+                propagationHelper.SetConflictFlag();//dacă e conflict, setăm flag-ul de conflict
             }
         }
 
@@ -137,4 +131,3 @@ namespace WaveFunctionCollapse
 
     }
 }
-

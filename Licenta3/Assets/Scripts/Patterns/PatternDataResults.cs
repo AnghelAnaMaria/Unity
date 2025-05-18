@@ -8,15 +8,15 @@ namespace WaveFunctionCollapse
 {//Tilemap de indicii pattern-urilor
     public class PatternDataResults
     {
-        private int[][] patternIndicesGrid;//grila cu indicii unici ai pattern-urilor (adica matricea de patern-uri)
-        public Dictionary<int, PatternData> PatternIndexDictionary { get; private set; }//dicționarul index → PatternData, pentru a afla detaliile (frevența, conținutul)
-
+        private int[][] patternIndicesGrid;//matricea de patterns din input (input-ul tradus in matrice de patterns)
+        public Dictionary<int, PatternData> patternIndexDictionary { get; private set; }//dicționarul (index, PatternData), pentru a afla detaliile (frevența, conținutul)
+        //Pentru fiecare index de pattern (cheia din dicționar) am asociat un obiect PatternData, care stochează: instanța Pattern (valorile exacte ale sub-grilei), frecvența absolută și relativă, log-aritmul frecvenței (folosit pentru calculul entropiei în WFC).
 
         //Metode:
         public PatternDataResults(int[][] patternIndicesGrid, Dictionary<int, PatternData> patternIndexDictionary)
         {
             this.patternIndicesGrid = patternIndicesGrid;
-            PatternIndexDictionary = patternIndexDictionary;
+            this.patternIndexDictionary = patternIndexDictionary;
         }
 
         public int GetGridLengthX()
@@ -37,7 +37,7 @@ namespace WaveFunctionCollapse
         public int GetNeighbourInDirection(int x, int y, Direction dir)
         {
             // dacă poziția (x,y) însăși nu e validă return -1
-            if (patternIndicesGrid.CheckJaggedArray2dIndexIsValid(x, y) == false)
+            if (patternIndicesGrid.CheckJaggedArray2dIndexIsValid(x, y) == false)//CheckJaggedArray2dIndexIsValid din Helpers
                 return -1;
 
             switch (dir)

@@ -5,12 +5,12 @@ using UnityEngine.Tilemaps;
 using WaveFunctionCollapse;
 
 
-namespace WaveFunctionCollaps
-{
+namespace WaveFunctionCollapse
+{//Desenam matricea finala in scena 
     public class TilemapOutput : IOutputCreator<Tilemap>
     {
         private Tilemap outputImage;
-        private ValuesManager<TileBase> valueManager;
+        private ValuesManager<TileBase> valueManager;//matricea de int (int[][]) de input, fiecare int reprezentand un Tilebase
         public Tilemap OutputImage => outputImage;
 
         public TilemapOutput(ValuesManager<TileBase> valueManager, Tilemap outputImage)
@@ -19,18 +19,17 @@ namespace WaveFunctionCollaps
             this.valueManager = valueManager;
         }
 
-        public void CreateOutput(PatternManager manager, int[][] outputValues, int width, int height)
+        public void CreateOutput(PatternManager manager, int[][] outputValues, int width, int height)//outputValues= gridul de indici pattern, returnat de WFC. Dam gridul la PatternManager ca sa il convertim la indici de Tilebase
         {
             if (outputValues.Length == 0)
             {
                 return;
             }
-            this.outputImage.ClearAllTiles();
+            this.outputImage.ClearAllTiles();//stergem ce e desenat in scena
 
             int[][] valueGrid;
-            valueGrid = manager.ConvertPatternToValues<TileBase>(outputValues);
+            valueGrid = manager.ConvertPatternsToValues<TileBase>(outputValues);//convertim rezultatul WFC la matrice de indexi ce reprezinta Tilebase
 
-            // use the real dimensions of valueGrid:
             int rows = valueGrid.Length;
             int cols = valueGrid[0].Length;
 
@@ -38,7 +37,7 @@ namespace WaveFunctionCollaps
             {
                 for (int col = 0; col < cols; col++)
                 {
-                    var valueIndex = valueGrid[row][col];
+                    int valueIndex = valueGrid[row][col];//luam indicele corespunzator Tilebase-ului
                     TileBase tile = (TileBase)valueManager.GetValueFromIndex(valueIndex).value;
                     outputImage.SetTile(new Vector3Int(col, row, 0), tile);
                 }
@@ -47,4 +46,3 @@ namespace WaveFunctionCollaps
         }
     }
 }
-

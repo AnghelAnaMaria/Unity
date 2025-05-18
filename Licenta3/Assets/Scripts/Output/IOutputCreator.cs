@@ -4,7 +4,7 @@ using UnityEngine;
 using WaveFunctionCollapse;
 
 
-namespace WaveFunctionCollaps
+namespace WaveFunctionCollapse
 {
     public interface IOutputCreator<T>
     {
@@ -13,4 +13,3 @@ namespace WaveFunctionCollaps
 
     }
 }
-

@@ -5,12 +5,11 @@ using UnityEngine;
 namespace WaveFunctionCollapse
 {
     public class PatternNeighbours
-    {
-        // Pentru fiecare direcție, setul de indici de pattern-uri care pot sta acolo
-        public Dictionary<Direction, HashSet<int>> directionPatternNeighbourDictionary = new Dictionary<Direction, HashSet<int>>();
+    {//Clasa PatternNeighbours este folosită pentru a păstra și gestiona, pentru fiecare pattern (sub-grilă N×N), lista de pattern-uri care îi pot fi alăturate pe fiecare dintre cele patru direcții.
+        public Dictionary<Direction, HashSet<int>> directionPatternNeighbourDictionary = new Dictionary<Direction, HashSet<int>>();//Pentru fiecare direcție, setul de indici de pattern-uri care pot sta acolo
 
-        // Adaugă un singur neighbour (patternIndex) pentru o direcție anume
-        public void AddPatternToDictionary(Direction dir, int patternIndex)
+        //Metode:
+        public void AddPatternToDictionary(Direction dir, int patternIndex)//Adaugă un singur neighbour (patternIndex) pentru o direcție anume
         {
             if (directionPatternNeighbourDictionary.ContainsKey(dir))
             {
@@ -35,15 +34,14 @@ namespace WaveFunctionCollapse
         // Fuzionează toate intrările dintr-un alt PatternNeighbours în acesta
         public void AddNeighbour(PatternNeighbours neighbours)
         {
-            foreach (var item in neighbours.directionPatternNeighbourDictionary)
+            foreach (var item in neighbours.directionPatternNeighbourDictionary)//pentru fiecare item= (direcție, setDeIndexuri) din obiectul PatternNeighbours dat parametru
             {
-                // dacă n-avem încă intrare pentru această direcție, o creăm
-                if (!directionPatternNeighbourDictionary.ContainsKey(item.Key))
+                if (!this.directionPatternNeighbourDictionary.ContainsKey(item.Key))
                 {
-                    directionPatternNeighbourDictionary.Add(item.Key, new HashSet<int>());
+                    this.directionPatternNeighbourDictionary.Add(item.Key, new HashSet<int>());
                 }
-                // apoi unim (adăugăm) toate index‐urile din setul venit ca parametru
-                directionPatternNeighbourDictionary[item.Key].UnionWith(item.Value);
+
+                this.directionPatternNeighbourDictionary[item.Key].UnionWith(item.Value);//punem in obj. this.PatternNeighbours vecinii celor 2 tiles
             }
         }
 
