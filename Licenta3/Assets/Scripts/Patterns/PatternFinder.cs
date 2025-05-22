@@ -80,11 +80,66 @@ namespace WaveFunctionCollapse
                     {
                         patternIndicesGrid[row + patternSize - 1][col + patternSize - 1] = patternHashcodeDictionary[hashValue].Pattern.Index;//ca sa incepem de la index 0
                     }
+                    // // (a) extragem fereastra originală
+                    // int[][] baseGrid = valuesManager.GetPatternValuesFromGridAt(col, row, patternSize);
+
+                    // // (b) generăm lista de variante (original + rotații)
+                    // var variants = new List<int[][]> { baseGrid };
+                    // if (patternSize > 1)
+                    // {
+                    //     var r90 = Rotate90(baseGrid);
+                    //     var r180 = Rotate90(r90);
+                    //     var r270 = Rotate90(r180);
+                    //     variants.Add(r90);
+                    //     variants.Add(r180);
+                    //     variants.Add(r270);
+                    // }
+
+                    // // (c) pentru fiecare variantă, înregistrăm sau creștem frecvența
+                    // foreach (var gv in variants)
+                    // {
+                    //     string h = HashCodeCalculator.CalculateHashCode(gv);
+                    //     if (!patternHashcodeDictionary.ContainsKey(h))
+                    //     {
+                    //         // pattern nou
+                    //         var pat = new Pattern(gv, h, patternIndex);
+                    //         AddNewPattern(patternHashcodeDictionary, patternIndexDictionary, h, pat);
+                    //         patternIndex++;
+                    //     }
+                    //     else if (!equalWeights)
+                    //     {
+                    //         // deja există → creștem doar frecvența
+                    //         var existing = patternHashcodeDictionary[h];
+                    //         patternIndexDictionary[existing.Pattern.Index].AddToFrequency();
+                    //     }
+
+                    //     totalFrequency++;
+
+                    //     // salvăm în matricea de rezultate
+                    //     int pid = patternHashcodeDictionary[h].Pattern.Index;
+                    //     if (patternSize < 3)
+                    //         patternIndicesGrid[row + 1][col + 1] = pid;
+                    //     else
+                    //         patternIndicesGrid[row + patternSize - 1]
+                    //                           [col + patternSize - 1] = pid;
+                    // }
+
                 }
             }
             //Calculez frecventa pt patterns
             CalculateRelativeFrequency(patternIndexDictionary, totalFrequency);
             return new PatternDataResults(patternIndicesGrid, patternIndexDictionary);
+        }
+
+        //Rotim patterns:
+        private static int[][] Rotate90(int[][] grid)
+        {
+            int N = grid.Length;
+            var r = MyCollectionExtension.CreateJaggedArray<int[][]>(N, N);
+            for (int y = 0; y < N; y++)
+                for (int x = 0; x < N; x++)
+                    r[x][N - 1 - y] = grid[y][x];
+            return r;
         }
 
         private static void CalculateRelativeFrequency(Dictionary<int, PatternData> patternIndexDictionary, int totalFrequency)

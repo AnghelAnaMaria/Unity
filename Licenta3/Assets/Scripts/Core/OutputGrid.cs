@@ -10,11 +10,12 @@ using UnityEngine.Tilemaps;
 namespace WaveFunctionCollapse
 {
     public class OutputGrid
-    {
+    {//Stadiul pt fiecare celula (ce patterns pot sta pe fiecare celula)
         private Dictionary<int, HashSet<int>> indexPossiblePatternDictionary;//(index liniar al unei celule din grid, indexi ale patterns ce pot sta in celula);           index liniar = x + width * y
         public int width { get; }//dimensiune grid final(output)
         public int height { get; }//dimensiune grid final(output)
         private int maxNumberOfPatterns = 0;//nr de pattern-uri distincte din gridul final
+
 
         //Metode:
         public OutputGrid(int width, int height, int numberOfPatterns)
@@ -120,8 +121,19 @@ namespace WaveFunctionCollapse
 
         public Vector2Int GetRandomCellCoords()
         {
-            int randIndex = UnityEngine.Random.Range(0, indexPossiblePatternDictionary.Count);
-            return GetCoordsFromIndex(randIndex);
+            List<Vector2Int> edgeCells = new List<Vector2Int>();
+            for (int x = 0; x < width; x++)
+            {
+                edgeCells.Add(new Vector2Int(x, 0));  //bottom row
+                edgeCells.Add(new Vector2Int(x, height - 1));//top row
+            }
+            for (int y = 1; y < height - 1; y++)
+            {
+                edgeCells.Add(new Vector2Int(0, y)); //left column
+                edgeCells.Add(new Vector2Int(width - 1, y));//right column
+            }
+            int randIndex = UnityEngine.Random.Range(0, edgeCells.Count);
+            return edgeCells[randIndex];
         }
 
         private Vector2Int GetCoordsFromIndex(int randIndex)
@@ -156,5 +168,19 @@ namespace WaveFunctionCollapse
 
             return returnGrid;
         }
+
+        public void ClearCell(int x, int y)
+        {
+            int index = GetIndexFromCoordinates(new Vector2Int(x, y));
+            indexPossiblePatternDictionary[index] = new HashSet<int>();
+        }
+
+        public void SetPossiblePatterns(int x, int y, HashSet<int> patterns)
+        {
+            int index = GetIndexFromCoordinates(new Vector2Int(x, y));
+            indexPossiblePatternDictionary[index] = new HashSet<int>(patterns);
+        }
+
+
     }
 }

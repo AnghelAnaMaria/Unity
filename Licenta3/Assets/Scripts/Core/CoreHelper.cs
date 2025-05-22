@@ -18,26 +18,36 @@ namespace WaveFunctionCollapse
             this.patternManager = patternManager;
         }
 
-        public int SelectSolutionPatternFromFrequency(List<int> possibleValues)//possibleValues= lista de patterns posibile pt o celula din Tilemap
+        public int SelectSolutionPatternFromFrequency(List<int> possibleValues, Vector2Int position, Dictionary<Vector2Int, HashSet<int>> softBanned, float epsilon = 0.01f)//possibleValues= lista de patterns posibile valide pt o celula din Tilemap
         {
-            List<float> valueFrequenciesFractions = GetListOfWeightsFromIndices(possibleValues);//lista de greutăți (frecvențe relative) pentru fiecare pattern
-            float randomValue = UnityEngine.Random.Range(0f, valueFrequenciesFractions.Sum());//alegem un punct aleator în intervalul [0, suma tuturor greutăților)
+            List<float> weights = GetListOfWeightsFromIndices(possibleValues);//lista de greutăți (frecvențe relative) pentru fiecare pattern
+
+            //Aplic penalizarea epsilon pattern-urilor “soft banned”
+            if (softBanned != null && softBanned.TryGetValue(position, out var banned))//position= pozitia pe care colapsam
+            {
+                for (int i = 0; i < possibleValues.Count; i++)//cautam in toate patterns
+                {
+                    if (banned.Contains(possibleValues[i]))//daca patterns nu vrem sa stea pe pozitia unde colapsam acum
+                        weights[i] *= epsilon;//ii facem frecventa mai mica
+                }
+            }
+
+            float randomValue = UnityEngine.Random.Range(0f, weights.Sum());//alegem un punct aleator în intervalul [0, suma tuturor greutăților) pt celula position
 
             float sum = 0f;
-            int index = 0;
             //parcurgem greutățile și acumulăm până depășim randomValue
-            foreach (var item in valueFrequenciesFractions)
+            for (int i = 0; i < weights.Count; i++)
             {
-                sum += item;
+                sum += weights[i];
                 if (randomValue <= sum)
                 {
-                    //returnăm pozitia pattern-ului din lista data- adica poziia din possibleValues
-                    return index;
+                    //returnăm pattern-ul din lista data
+                    return possibleValues[i];
                 }
-                index++;
             }
-            //in caz că nu am returnat în buclă, alegem ultima pozitie din lista
-            return index - 1;
+            //Fallback: ultimul pattern
+            return possibleValues[possibleValues.Count - 1];
+
         }
 
         private List<float> GetListOfWeightsFromIndices(List<int> possibleValues)////possibleValues= lista de patterns
@@ -85,14 +95,14 @@ namespace WaveFunctionCollapse
             return sum;
         }
 
-        public List<VectorPair> CheckIfNeighboursAreCollapsed(VectorPair pairToCheck, OutputGrid outputGrid)//returnam vecinii necolapsati ai unei celule din grid (ai celulei tinta)
+        public List<VectorPair> ReturnUncollapsedNeighbours(VectorPair pairToCheck, OutputGrid outputGrid)//returnam vecinii necolapsati ai unei celule din grid (ai celulei tinta)
         {
             return Create4DirectionNeighbours(pairToCheck.CellToPropagatePosition, pairToCheck.BaseCellPosition)
                 .Where(x => outputGrid.CheckIfValidCoords(x.CellToPropagatePosition) && outputGrid.CheckIfCellIsCollapsed(x.CellToPropagatePosition) == false)//x aici nu e coordonata X, ci un VectorPair, deci un (x,y)
                 .ToList();
         }
 
-        public bool CheckCellSolutionForCollision(Vector2Int cellCoordinates, OutputGrid outputGrid)//verifica daca o celula colapsata se potriveste cu vecinii (ca sa nu generam contradictii)
+        public bool CheckCellSolutionForCollision(Vector2Int cellCoordinates, OutputGrid outputGrid)//verifica daca o celula colapsata nu se potriveste cu vecinii (ca sa nu generam contradictii), adica daca avem collision
         {
             foreach (var neighbour in Create4DirectionNeighbours(cellCoordinates))//pt fiecare vecin VectorPair
             {
@@ -106,7 +116,7 @@ namespace WaveFunctionCollapse
                     possibleIndices.UnionWith(possibleNeighboursForBase);
                 }
 
-                if (possibleIndices.Contains(outputGrid.GetPossibleValuesForPosition(cellCoordinates).First()) == false)//verificam daca printre patterns ale celulei curente se afla si cel colapsat -> daca da, nu avem contradictie
+                if (!possibleIndices.Contains(outputGrid.GetPossibleValuesForPosition(cellCoordinates).First()))//verificam daca printre patterns ale celulei curente se afla si cel colapsat -> daca da, nu avem contradictie
                     return true;
             }
 

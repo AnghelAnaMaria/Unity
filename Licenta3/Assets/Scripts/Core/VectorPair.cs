@@ -25,5 +25,6 @@ namespace WaveFunctionCollapse
         {
             return PreviousCellPosition == CellToPropagatePosition;
         }
+
     }
 }

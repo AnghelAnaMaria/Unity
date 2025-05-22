@@ -12,14 +12,16 @@ namespace WaveFunctionCollapse
         OutputGrid outputGrid;//starea curenta a WFC (multimea de pattern-uri inca posibile pt fiecare celula)
         CoreHelper coreHelper;//evalueaza entropia, genereaza vecinii, detecteaza coliziunile in timpul propagarii
         PropagationHelper propagationHelper;//logica pt VectorPair
+        Dictionary<Vector2Int, HashSet<int>> softBanned;
 
 
         //Metode:
-        public CoreSolver(OutputGrid outputGrid, PatternManager patternManager)
+        public CoreSolver(OutputGrid outputGrid, PatternManager patternManager, Dictionary<Vector2Int, HashSet<int>> softBanned)
         {
             this.outputGrid = outputGrid;
             this.patternManager = patternManager;
             this.coreHelper = new CoreHelper(this.patternManager);
+            this.softBanned = softBanned;
             this.propagationHelper = new PropagationHelper(this.outputGrid, this.coreHelper);
         }
 
@@ -48,7 +50,7 @@ namespace WaveFunctionCollapse
 
         private void ProcessCell(VectorPair propagatePair)
         {
-            if (outputGrid.CheckIfCellIsCollapsed(propagatePair.CellToPropagatePosition))//daca celula tinta e colapsata
+            if (outputGrid.CheckIfCellIsCollapsed(propagatePair.CellToPropagatePosition))//daca celula tinta e colapsata 
             {
                 propagationHelper.EnqueueUncollapseNeighbours(propagatePair);//bagam vecinii necolapsati ai celulei tinta in coada
             }
@@ -58,7 +60,7 @@ namespace WaveFunctionCollapse
             }
         }
 
-        private void PropagateNeighbour(VectorPair propagatePair)
+        private void PropagateNeighbour(VectorPair propagatePair)//pt celula tinta; patterns compatibile gasite sunt salvate in dictionarul din OutputGrid
         {
             HashSet<int> possibleValuesAtNeighbour = outputGrid.GetPossibleValuesForPosition(propagatePair.CellToPropagatePosition);//patterns care pot sta in celula tinta
             int startCount = possibleValuesAtNeighbour.Count;//cate celule pot sta in celula tinta
@@ -69,7 +71,7 @@ namespace WaveFunctionCollapse
             propagationHelper.AnalyzePropagationResults(propagatePair, startCount, newPossiblePatternCount);
         }
 
-        private void RemoveImpossibleNeighbours(VectorPair propagatePair, HashSet<int> possibleValuesAtNeighbour)
+        private void RemoveImpossibleNeighbours(VectorPair propagatePair, HashSet<int> possibleValuesAtNeighbour)//pt celula baza
         {
             HashSet<int> possibleIndices = new HashSet<int>();
 
@@ -88,6 +90,29 @@ namespace WaveFunctionCollapse
             {
                 return outputGrid.GetRandomCellCoords();
             }
+
+            // float alpha = 0.05f;//we can change this value
+            // LowEntropyCell bestCell = null;
+            // float minScore = float.MaxValue;
+
+            // foreach (var cell in propagationHelper.LowEntropySet)//pt fiecare LowEntropyCell cell din set
+            // {
+            //     int uncollapsedNeighbors = GetUncollapsedNeighborCount(cell.position);
+            //     float score = cell.entropy - alpha * uncollapsedNeighbors;
+            //     if (score < minScore)
+            //     {
+            //         minScore = score;
+            //         bestCell = cell;
+            //     }
+            // }
+
+            // if (bestCell == null)
+            //     return outputGrid.GetRandomCellCoords();
+
+            // propagationHelper.LowEntropySet.Remove(bestCell);//eliminam din set
+            // Debug.Log("celula cu entropie minima: " + bestCell.position);
+            // return bestCell.position;//returnam pozitia (x,y) a celulei cu entropie minima
+
             else
             {
                 LowEntropyCell lowestEntropyElement = propagationHelper.LowEntropySet.First();//luam din set
@@ -101,22 +126,69 @@ namespace WaveFunctionCollapse
         {
             List<int> possibleValues = outputGrid.GetPossibleValuesForPosition(cellCoordinates).ToList();//construiesc lista de pattern-uri (ID-uri) care mai pot sta pe celulă
 
-            if (possibleValues.Count == 0 || possibleValues.Count == 1)
+            if (possibleValues.Count == 0)
+            {
+                propagationHelper.SetConflictFlag();
+                Debug.Log("Am ramas cu 0 patterns pt celula.");
                 return;
-
-            int index = coreHelper.SelectSolutionPatternFromFrequency(possibleValues);//alegem, din lista de mai sus, soluția(index-ul) bazată pe frecvențe
-            outputGrid.SetPatternOnPosition(cellCoordinates.x, cellCoordinates.y, possibleValues[index]);//salvam pattern-ul pt celula
-
-            //verificăm dacă soluția aleasă cauzează un conflict
-            if (coreHelper.CheckCellSolutionForCollision(cellCoordinates, outputGrid) == false)
-            {
-                propagationHelper.AddNewPairsToPropagateQueue(cellCoordinates, cellCoordinates);//dacă nu e conflict, adăugăm vecinii celulei in coada
             }
-            else
+            if (possibleValues.Count == 1)
             {
-                propagationHelper.SetConflictFlag();//dacă e conflict, setăm flag-ul de conflict
+                outputGrid.SetPatternOnPosition(cellCoordinates.x, cellCoordinates.y, possibleValues[0]);
+                propagationHelper.AddNewPairsToPropagateQueue(cellCoordinates, cellCoordinates);
+                return;
             }
+
+            var backup = new HashSet<int>(possibleValues);
+
+            var validValues = new List<int>();
+            foreach (int patternId in possibleValues)
+            {
+                outputGrid.SetPatternOnPosition(cellCoordinates.x, cellCoordinates.y, patternId);//temporar
+                bool hasConflict = coreHelper.CheckCellSolutionForCollision(cellCoordinates, outputGrid);//check for collision
+                outputGrid.ClearCell(cellCoordinates.x, cellCoordinates.y); // Undo
+                outputGrid.SetPossiblePatterns(cellCoordinates.x, cellCoordinates.y, backup);
+
+                if (!hasConflict)
+                    validValues.Add(patternId);
+            }
+
+            if (validValues.Count == 0)
+            {
+                propagationHelper.SetConflictFlag();
+                return;
+            }
+
+            // continue as before, but pick from the *filtered* list
+            int chosenPatternId = coreHelper.SelectSolutionPatternFromFrequency(validValues, cellCoordinates, softBanned);
+
+            outputGrid.SetPatternOnPosition(cellCoordinates.x, cellCoordinates.y, chosenPatternId);
+
+            propagationHelper.AddNewPairsToPropagateQueue(cellCoordinates, cellCoordinates);
+
         }
+
+        private int GetUncollapsedNeighborCount(Vector2Int cell)
+        {
+            int count = 0;
+            foreach (Direction dir in System.Enum.GetValues(typeof(Direction)))
+            {
+                Vector2Int neighbor = cell;
+                switch (dir)
+                {
+                    case Direction.Up: neighbor += Vector2Int.up; break;
+                    case Direction.Down: neighbor += Vector2Int.down; break;
+                    case Direction.Left: neighbor += Vector2Int.left; break;
+                    case Direction.Right: neighbor += Vector2Int.right; break;
+                }
+                if (outputGrid.CheckIfValidCoords(neighbor) && !outputGrid.CheckIfCellIsCollapsed(neighbor))
+                {
+                    count++;
+                }
+            }
+            return count;
+        }
+
 
         public bool CheckIfSolved()
         {

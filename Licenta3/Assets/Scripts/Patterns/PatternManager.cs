@@ -45,7 +45,15 @@ namespace WaveFunctionCollapse
         private void GetPatternNeighbours(PatternDataResults patternDataResults, IFindNeighbourStrategy strategy)
         {
             patternPossibleNeighboursDictionary = PatternFinder.FindPossibleNeighboursForAllPatterns(strategy, patternDataResults);//avem vecinii pt fiecare pattern
-            Debug.Log($"[PatternManager] Found neighbour‐lists for {patternPossibleNeighboursDictionary.Count} patterns: " + string.Join(",", patternPossibleNeighboursDictionary.Keys));
+            foreach (int pid in patternDataIndexDictionary.Keys)
+            {
+                if (!patternPossibleNeighboursDictionary.ContainsKey(pid))
+                {
+                    patternPossibleNeighboursDictionary[pid] = new PatternNeighbours();
+                }
+            }
+
+            Debug.Log($"[PatternManager] Vecini configurați pentru {patternPossibleNeighboursDictionary.Count} patterns (din {patternDataIndexDictionary.Count})");
         }
 
         public IEnumerable<int> GetAllPatternIndices()

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using Unity.VisualScripting;
 
 
 
@@ -19,6 +20,18 @@ namespace WaveFunctionCollapse
         //Getters:
         public SortedSet<LowEntropyCell> LowEntropySet { get => lowEntropySet; }
         public Queue<VectorPair> PairsToPropagate { get => pairsToPropagate; }
+
+        //Setters:
+        public SortedSet<LowEntropyCell> SetLowEntropySet
+        {
+            get => lowEntropySet;
+            set => lowEntropySet = value;
+        }
+        public Queue<VectorPair> SetPairsToPropagate
+        {
+            get => pairsToPropagate;
+            set => pairsToPropagate = value;
+        }
 
         //Constructor:
         public PropagationHelper(OutputGrid outputGrid, CoreHelper coreHelper)
@@ -54,7 +67,7 @@ namespace WaveFunctionCollapse
 
         public void AddNewPairsToPropagateQueue(Vector2Int cellToPropagatePosition, Vector2Int baseCellPosition)
         {
-            List<VectorPair> list = coreHelper.Create4DirectionNeighbours(cellToPropagatePosition, baseCellPosition);
+            List<VectorPair> list = coreHelper.Create4DirectionNeighbours(cellToPropagatePosition, baseCellPosition);//vecinii pt cellToPropagatePosition
             foreach (VectorPair item in list)
             {
                 pairsToPropagate.Enqueue(item);
@@ -80,7 +93,7 @@ namespace WaveFunctionCollapse
 
         internal void EnqueueUncollapseNeighbours(VectorPair propagatePair)
         {
-            List<VectorPair> uncollapsedNeighbours = coreHelper.CheckIfNeighboursAreCollapsed(propagatePair, outputGrid);//vecinii necolapsati pt celula tinta
+            List<VectorPair> uncollapsedNeighbours = coreHelper.ReturnUncollapsedNeighbours(propagatePair, outputGrid);//vecinii necolapsati pt celula tinta
             foreach (VectorPair uncollapsed in uncollapsedNeighbours)//bagam vecinii necolapsati in coada
             {
                 pairsToPropagate.Enqueue(uncollapsed);

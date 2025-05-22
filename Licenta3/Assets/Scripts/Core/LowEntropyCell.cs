@@ -40,5 +40,6 @@ namespace WaveFunctionCollapse
         {
             return position.GetHashCode();
         }
+
     }
 }
