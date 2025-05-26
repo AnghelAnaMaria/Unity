@@ -150,7 +150,6 @@ namespace WaveFunctionCollapse
             }
         }
 
-
         private static void AddNewPattern(Dictionary<string, PatternData> patternHashcodeDictionary, Dictionary<int, PatternData> patternIndexDictionary, string hashValue, Pattern pattern)
         {
             // Creăm un PatternData nou pe baza obiectului Pattern

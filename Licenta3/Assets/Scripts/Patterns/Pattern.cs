@@ -119,6 +119,48 @@ namespace WaveFunctionCollapse
             // Folosim div și mod ca să transformăm indexul liniar iîn coordonate 2D (tx, ty).
         }
 
+        public override bool Equals(object obj)
+        {
+            var other = obj as Pattern;
+            return other != null && ArePatternsEqual(this, other);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 17;
+                for (int y = 0; y < GetHeight(); y++)
+                    for (int x = 0; x < GetWidth(); x++)
+                        hash = hash * 31 + GetGridValue(x, y).GetHashCode();
+                return hash;
+            }
+        }
+
+        public static bool ArePatternsEqual(Pattern p1, Pattern p2)
+        {
+            if (ReferenceEquals(p1, p2)) return true;
+            if (p1 == null || p2 == null) return false;
+            if (p1.GetWidth() != p2.GetWidth() || p1.GetHeight() != p2.GetHeight())
+                return false;
+            for (int y = 0; y < p1.GetHeight(); y++)
+                for (int x = 0; x < p1.GetWidth(); x++)
+                    if (p1.GetGridValue(x, y) != p2.GetGridValue(x, y))
+                        return false;
+            return true;
+        }
+
+        public int GetWidth()
+        {
+            return grid.Length > 0 ? grid[0].Length : 0;
+        }
+
+        public int GetHeight()
+        {
+            return grid.Length;
+        }
+
+
     }
 }
 

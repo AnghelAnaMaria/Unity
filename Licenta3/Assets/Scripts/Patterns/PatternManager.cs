@@ -24,17 +24,21 @@ namespace WaveFunctionCollapse
             this.patternSize = patternSize;
         }
 
-        public void ProcessGrid<T>(ValuesManager<T> valueManager, bool equalWeights, string strategyName = null)//avem strategie
+        public IFindNeighbourStrategy ProcessStrategy(string strategyName = null)
         {
             NeighbourStrategyFactory strategyFactory = new NeighbourStrategyFactory();
             strategy = strategyFactory.CreateInstance(strategyName == null ? patternSize + "" : strategyName);
+            return strategy;
+        }
+
+        public void ProcessGrid<T>(ValuesManager<T> valueManager, bool equalWeights, IFindNeighbourStrategy strategy)//avem strategie
+        {
             CreatePatterns(valueManager, strategy, equalWeights);
         }
 
         private void CreatePatterns<T>(ValuesManager<T> valueManager, IFindNeighbourStrategy strategy, bool equalWeights)
         {
             PatternDataResults patternDataResults = PatternFinder.GetPatternDataFromGrid(valueManager, patternSize, equalWeights);//avem matricea de patterns
-            patternDataIndexDictionary.Clear();
             foreach (var kv in patternDataResults.patternIndexDictionary)
                 patternDataIndexDictionary.Add(kv.Key, kv.Value);
             Debug.Log($"[PatternManager] Extracted {patternDataIndexDictionary.Count} patterns: " + string.Join(",", patternDataIndexDictionary.Keys));
