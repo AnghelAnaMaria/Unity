@@ -157,18 +157,18 @@ public class Test : MonoBehaviour
 
         var allPatterns = Enumerable.Range(0, patternManager.GetNumberOfPatterns()).ToHashSet();
         var softBanned = new Dictionary<Vector2Int, HashSet<int>>();//dictionar (pozitie, ce patterns nu ne dorim)
-        for (int py = 0; py < outputHeight; py++)//pe marginea stângă
-            softBanned[new Vector2Int(0, py)] = allPatterns.Except(leftPatterns).ToHashSet();
-        for (int py = 0; py < outputHeight; py++)//pe marginea dreaptă
-            softBanned[new Vector2Int(outputWidth - 1, py)] = allPatterns.Except(rightPatterns).ToHashSet();
-        for (int px = 0; px < outputWidth; px++)//jos
-            softBanned[new Vector2Int(px, 0)] = allPatterns.Except(downPatterns).ToHashSet();
-        for (int px = 0; px < outputWidth; px++)//sus
-            softBanned[new Vector2Int(px, outputHeight - 1)] = allPatterns.Except(upPatterns).ToHashSet();
+        // for (int py = 0; py < outputHeight; py++)//pe marginea stângă
+        //     softBanned[new Vector2Int(0, py)] = allPatterns.Except(leftPatterns).ToHashSet();
+        // for (int py = 0; py < outputHeight; py++)//pe marginea dreaptă
+        //     softBanned[new Vector2Int(outputWidth - 1, py)] = allPatterns.Except(rightPatterns).ToHashSet();
+        // for (int px = 0; px < outputWidth; px++)//jos
+        //     softBanned[new Vector2Int(px, 0)] = allPatterns.Except(downPatterns).ToHashSet();
+        // for (int px = 0; px < outputWidth; px++)//sus
+        //     softBanned[new Vector2Int(px, outputHeight - 1)] = allPatterns.Except(upPatterns).ToHashSet();
         for (int px = outputWidth / 3; px < 2 * outputWidth / 3; px++)
             for (int py = outputHeight / 3; py < 2 * outputHeight / 3; py++)
             {
-                softBanned[new Vector2Int(px, py)] = allPatterns.Except(middlePatterns).ToHashSet();
+                softBanned[new Vector2Int(px, py)] = middlePatterns.ToHashSet();
             }
         core = new WFCCore(outputWidth, outputHeight, maxIteration, patternManager, softBanned);
 
