@@ -13,11 +13,12 @@ namespace WaveFunctionCollapse
         private Dictionary<Vector2Int, HashSet<int>> softBanned;//patterns care nu vrem sa apara pe anumite pozitii
         private int outputWidth;
         private int outputHeight;
+        private Dictionary<Vector2Int, HashSet<int>> initialRestrictions;
 
 
 
         public OutputGrid OutputGrid => outputGrid;
-        public WFCCore(int outputWidth, int outputHeight, int maxIterations, PatternManager patternManager, Dictionary<Vector2Int, HashSet<int>> softBanned = null)
+        public WFCCore(int outputWidth, int outputHeight, int maxIterations, PatternManager patternManager, Dictionary<Vector2Int, HashSet<int>> softBanned = null, Dictionary<Vector2Int, HashSet<int>> initialRestrictions = null)
         {
             this.outputWidth = outputWidth;
             this.outputHeight = outputHeight;
@@ -25,17 +26,18 @@ namespace WaveFunctionCollapse
             this.maxIterations = maxIterations;
             this.patternManager = patternManager;
             this.softBanned = softBanned;
-            //ApplyInitialRestrictions();
+            this.initialRestrictions = initialRestrictions;
+            ApplyInitialRestrictions();
         }
 
-        // private void ApplyInitialRestrictions()
-        // {
-        //     if (initialRestrictions == null) return;
-        //     foreach (var restriction in initialRestrictions)//fiecare pereche restriction= (Vector2Int pos, HashSet<int> patterns)
-        //     {
-        //         outputGrid.RestrictPossibleValuesAt(restriction.Key.x, restriction.Key.y, restriction.Value);
-        //     }
-        // }
+        private void ApplyInitialRestrictions()
+        {
+            if (initialRestrictions == null) return;
+            foreach (var restriction in initialRestrictions)//fiecare pereche restriction= (Vector2Int pos, HashSet<int> patterns)
+            {
+                outputGrid.RestrictPossibleValuesAt(restriction.Key.x, restriction.Key.y, restriction.Value);
+            }
+        }
 
         public int[][] CreateOutputGrid()
         {
