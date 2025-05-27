@@ -6,6 +6,12 @@ using UnityEngine;
 
 namespace WaveFunctionCollapse
 {
+    struct CollapseStep
+    {
+        public Vector2Int cell;
+        public HashSet<int> previousPossibilities;
+    }
+
     public class CoreSolver
     {
         PatternManager patternManager;//rezultatul= grila de int care reprezinta grila finala de Tiles
@@ -13,6 +19,8 @@ namespace WaveFunctionCollapse
         CoreHelper coreHelper;//evalueaza entropia, genereaza vecinii, detecteaza coliziunile in timpul propagarii
         PropagationHelper propagationHelper;//logica pt VectorPair
         Dictionary<Vector2Int, HashSet<int>> softBanned;
+        private Stack<CollapseStep> lastSteps = new Stack<CollapseStep>();
+        private int maxBacktrackSteps = 5; //se poate modifica
 
 
         //Metode:
@@ -62,10 +70,13 @@ namespace WaveFunctionCollapse
 
         private void PropagateNeighbour(VectorPair propagatePair)//pt celula tinta; patterns compatibile gasite sunt salvate in dictionarul din OutputGrid
         {
+            Debug.Log("Am apelat metoda PropagateNeighbour");
             HashSet<int> possibleValuesAtNeighbour = outputGrid.GetPossibleValuesForPosition(propagatePair.CellToPropagatePosition);//patterns care pot sta in celula tinta
             int startCount = possibleValuesAtNeighbour.Count;//cate celule pot sta in celula tinta
+            Debug.Log("Patterns posibile (si incompatibile): " + possibleValuesAtNeighbour.Count);
 
             RemoveImpossibleNeighbours(propagatePair, possibleValuesAtNeighbour);//scapam de patterns incompatibile pt celula tinta
+            Debug.Log("Patterns compatibile: " + possibleValuesAtNeighbour.Count);
 
             int newPossiblePatternCount = possibleValuesAtNeighbour.Count;//cu cate pattern-uri compatibile am ramas
             propagationHelper.AnalyzePropagationResults(propagatePair, startCount, newPossiblePatternCount);
@@ -86,9 +97,12 @@ namespace WaveFunctionCollapse
 
         public Vector2Int GetLowestEntropyCell()
         {
+            Debug.Log("Am apelat metoda GetLowestEntropyCell");
             if (propagationHelper.LowEntropySet.Count <= 0)
             {
-                return outputGrid.GetRandomCellCoords();
+                var coords = outputGrid.GetRandomCellCoords();
+                Debug.Log("Low entropy random coords: " + coords);
+                return coords;
             }
 
             // float alpha = 0.05f;//we can change this value
@@ -118,28 +132,52 @@ namespace WaveFunctionCollapse
                 LowEntropyCell lowestEntropyElement = propagationHelper.LowEntropySet.First();//luam din set
                 Vector2Int returnVector = lowestEntropyElement.position;
                 propagationHelper.LowEntropySet.Remove(lowestEntropyElement);//eliminam din set
+                Debug.Log("Low entropy cell coords: " + returnVector);
                 return returnVector;//returnam pozitia (x,y) a celulei cu entropie minima
             }
         }
 
         public void CollapseCell(Vector2Int cellCoordinates)
         {
+            Debug.Log("Am apelat metoda CollapseCell");
+            //Backtrack last 5 steps:
+            lastSteps.Push(new CollapseStep //save the current possibilities for this cell before collapsing
+            {
+                cell = cellCoordinates,
+                previousPossibilities = outputGrid.GetPossibleValuesForPosition(cellCoordinates)
+            });
+            if (lastSteps.Count > maxBacktrackSteps)
+            {
+                // Remove oldest if >5
+                var temp = lastSteps.ToArray();
+                lastSteps.Clear();
+                for (int i = temp.Length - 1; i >= temp.Length - maxBacktrackSteps; i--)
+                    lastSteps.Push(temp[i]);
+            }
+            Debug.Log("Avem " + lastSteps.Count + " pasi in coada de backtrack.");
+
+
+
+            //Rest:
             List<int> possibleValues = outputGrid.GetPossibleValuesForPosition(cellCoordinates).ToList();//construiesc lista de pattern-uri (ID-uri) care mai pot sta pe celulă
+            Debug.Log("Avem " + possibleValues.Count + " patterns posibile pt celula cu coordonate " + cellCoordinates);
+
+            var backup = new HashSet<int>(possibleValues);
+            Debug.Log("In backup avem tot " + backup.Count + " patterns pt celula cu coordonate " + cellCoordinates);
 
             if (possibleValues.Count == 0)
             {
-                propagationHelper.SetConflictFlag();
                 Debug.Log("Am ramas cu 0 patterns pt celula.");
+                propagationHelper.SetConflictFlag();
                 return;
             }
             if (possibleValues.Count == 1)
             {
+                Debug.Log("Am ramas cu 1 pattern pt ccelula");
                 outputGrid.SetPatternOnPosition(cellCoordinates.x, cellCoordinates.y, possibleValues[0]);
                 propagationHelper.AddNewPairsToPropagateQueue(cellCoordinates, cellCoordinates);
                 return;
             }
-
-            var backup = new HashSet<int>(possibleValues);
 
             var validValues = new List<int>();
             foreach (int patternId in possibleValues)
@@ -156,11 +194,13 @@ namespace WaveFunctionCollapse
             if (validValues.Count == 0)
             {
                 propagationHelper.SetConflictFlag();
+                Debug.Log("nu mai avem patterns valide pt celula");
                 return;
             }
 
             // continue as before, but pick from the *filtered* list
             int chosenPatternId = coreHelper.SelectSolutionPatternFromFrequency(validValues, cellCoordinates, softBanned);
+            Debug.Log("pattern ales: " + chosenPatternId);
 
             outputGrid.SetPatternOnPosition(cellCoordinates.x, cellCoordinates.y, chosenPatternId);
 
@@ -199,6 +239,34 @@ namespace WaveFunctionCollapse
         {
             return propagationHelper.CheckForConflicts();
         }
+
+        public bool BacktrackLastSteps()
+        {
+            if (lastSteps.Count == 0)
+                return false;
+
+            int stepsToBacktrack = Mathf.Min(lastSteps.Count, maxBacktrackSteps);//5 pasi (sau mai putini, daca nu avem 5)
+            var stepsToRestore = new List<CollapseStep>();//punem pasii aici
+            for (int i = 0; i < stepsToBacktrack; i++)
+                stepsToRestore.Add(lastSteps.Pop());//scoatem din coada pasii, punem in lista cu pasi
+
+
+            stepsToRestore.Reverse();//cel mai vechi pas devine primul
+            foreach (var step in stepsToRestore)
+            {
+                // 1. Restore possibilities
+                outputGrid.SetPossiblePatterns(step.cell.x, step.cell.y, step.previousPossibilities);
+
+                // 2. Add to propagation queue (so the constraints are re-propagated)
+                // Assuming you can access the queue here or via PropagationHelper:
+                propagationHelper.PairsToPropagate.Enqueue(new VectorPair(step.cell, step.cell, Direction.Up, step.cell));
+
+                // 3. Recalculate entropy (add back to low entropy set)
+                propagationHelper.AddToLowEntropySet(step.cell);
+            }
+            return true;
+        }
+
 
 
     }

@@ -36,8 +36,10 @@ namespace WaveFunctionCollapse
         //Constructor:
         public PropagationHelper(OutputGrid outputGrid, CoreHelper coreHelper)
         {
-            this.outputGrid = outputGrid;
-            this.coreHelper = coreHelper;
+            this.outputGrid = outputGrid ?? throw new System.ArgumentNullException("outputGrid");
+            this.coreHelper = coreHelper ?? throw new System.ArgumentNullException("coreHelper");
+            this.lowEntropySet = new SortedSet<LowEntropyCell>();
+            this.pairsToPropagate = new Queue<VectorPair>();
         }
 
         public bool CheckIfPairShouldBeProcessed(VectorPair propagationPair)
@@ -58,7 +60,7 @@ namespace WaveFunctionCollapse
             {
                 cellWithNoSolutionPresent = true;//flag
             }
-            if (newPossiblePatternCount == 1)//daca am ramas cu 1 pattern dupa eliminare (pt celula tinta)
+            else if (newPossiblePatternCount == 1)//daca am ramas cu 1 pattern dupa eliminare (pt celula tinta)
             {
                 cellWithNoSolutionPresent = coreHelper.CheckCellSolutionForCollision(propagatePair.CellToPropagatePosition, outputGrid);//verific daca pattern-ul se potriveste cu toti vecinii
             }
@@ -74,20 +76,32 @@ namespace WaveFunctionCollapse
             }
         }
 
-        private void AddToLowEntropySet(Vector2Int cellToPropagatePosition)//in set fiecare celula necolapsata apare o data (cu entropia ei)
+        public void AddToLowEntropySet(Vector2Int cellToPropagatePosition)//in set fiecare celula necolapsata apare o data (cu entropia ei)
         {
-            LowEntropyCell elementOfLowEntropySet = lowEntropySet.Where(x => x.position == cellToPropagatePosition).FirstOrDefault();//luam obiectul LowEntropyCell din set corespunzator vectorului argument
-
-            if (elementOfLowEntropySet == null && outputGrid.CheckIfCellIsCollapsed(cellToPropagatePosition) == false)//daca celula e necolapsata si nu e in set
+            if (coreHelper == null)
             {
-                float entropy = coreHelper.CalculateEntropy(cellToPropagatePosition, outputGrid);//ii calculam entropia
-                lowEntropySet.Add(new LowEntropyCell(cellToPropagatePosition, entropy));//o bagam in set
+                Debug.LogError("coreHelper is null!");
+                return;
             }
-            else
+            if (outputGrid == null)
             {
-                lowEntropySet.Remove(elementOfLowEntropySet);//sergem celula din set
-                elementOfLowEntropySet.entropy = coreHelper.CalculateEntropy(cellToPropagatePosition, outputGrid);//recalculam entropia
-                lowEntropySet.Add(elementOfLowEntropySet);//bagam celula iar in set
+                Debug.LogError("outputGrid is null!");
+                return;
+            }
+            if (lowEntropySet == null)
+            {
+                Debug.LogError("lowEntropySet is null!");
+                return;
+            }
+
+            // Always remove any old cell for this position (if it exists)
+            lowEntropySet.RemoveWhere(x => x.position == cellToPropagatePosition);
+
+            // Only add if not collapsed
+            if (!outputGrid.CheckIfCellIsCollapsed(cellToPropagatePosition))
+            {
+                float entropy = coreHelper.CalculateEntropy(cellToPropagatePosition, outputGrid);
+                lowEntropySet.Add(new LowEntropyCell(cellToPropagatePosition, entropy));
             }
         }
 

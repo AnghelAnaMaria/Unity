@@ -1,15 +1,12 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-
 
 namespace WaveFunctionCollapse
 {
-    public class LowEntropyCell : IComparable<LowEntropyCell>, IEqualityComparer<LowEntropyCell>
+    public class LowEntropyCell : IComparable<LowEntropyCell>
     {
-        public Vector2Int position { get; set; }
-        public float entropy { get; set; }
+        public Vector2Int position { get; }
+        public float entropy { get; }
         private float smallEntropyNoise;
 
         public LowEntropyCell(Vector2Int position, float entropy)
@@ -21,25 +18,24 @@ namespace WaveFunctionCollapse
 
         public int CompareTo(LowEntropyCell other)
         {
-            if (entropy > other.entropy) return 1;
-            else if (entropy < other.entropy) return -1;
-            else return 0;
+            // Sort by entropy, then position.x, then position.y (to avoid duplicates)
+            int cmp = entropy.CompareTo(other.entropy);
+            if (cmp != 0) return cmp;
+            cmp = position.x.CompareTo(other.position.x);
+            if (cmp != 0) return cmp;
+            return position.y.CompareTo(other.position.y);
         }
 
-        public bool Equals(LowEntropyCell cell1, LowEntropyCell cell2)
+        public override bool Equals(object obj)
         {
-            return cell1.position.x == cell2.position.x && cell1.position.y == cell2.position.y;
-        }
-
-        public int GetHashCode(LowEntropyCell obj)//vrem ca daca 2 LowEntropyCell au acc pozitie(x,y) ele sa aiba acc hash.
-        {
-            return obj.GetHashCode();
+            if (obj is LowEntropyCell other)
+                return position.Equals(other.position);
+            return false;
         }
 
         public override int GetHashCode()
         {
             return position.GetHashCode();
         }
-
     }
 }

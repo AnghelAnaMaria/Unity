@@ -1,9 +1,11 @@
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using WaveFunctionCollapse;
-using UnityEditor;
 using System.Linq;
 
 
@@ -64,10 +66,10 @@ public class Test : MonoBehaviour
 
         foreach (int pid in patternManager.GetAllPatternIndices())
         {
-            var pd = patternManager.GetPatternDataFromIndex(pid);
-            var pat = pd.Pattern;
+            var patternData = patternManager.GetPatternDataFromIndex(pid);
+            var pattern = patternData.Pattern;
             // Jos-stanga (0,0)
-            int idxJosStanga = pat.GetGridValue(0, 0);
+            int idxJosStanga = pattern.GetGridValue(0, 0);
             var tileJosStanga = valueManager.GetValueFromIndex(idxJosStanga).value;
             // var tileJosStanga = FindTileByIndex(idxJosStanga, allValueManagers);
             string nameJosStanga = (tileJosStanga is Tile t1) ? t1.sprite.name : tileJosStanga.name;
@@ -77,7 +79,7 @@ public class Test : MonoBehaviour
                 middlePatterns.Add(pid);
 
             // Jos-dreapta (N-1,0)
-            int idxJosDreapta = pat.GetGridValue(N - 1, 0);
+            int idxJosDreapta = pattern.GetGridValue(N - 1, 0);
             var tileJosDreapta = valueManager.GetValueFromIndex(idxJosDreapta).value;
             // var tileJosDreapta = FindTileByIndex(idxJosDreapta, allValueManagers);
             string nameJosDreapta = (tileJosDreapta is Tile t2) ? t2.sprite.name : tileJosDreapta.name;
@@ -85,7 +87,7 @@ public class Test : MonoBehaviour
                 rightPatterns.Add(pid);
 
             // Jos-stanga (0,0)
-            int idxSusDreapta = pat.GetGridValue(0, 0);
+            int idxSusDreapta = pattern.GetGridValue(0, 0);
             var tileSusDreapta = valueManager.GetValueFromIndex(idxSusDreapta).value;
             //var tileSusDreapta = FindTileByIndex(idxSusDreapta, allValueManagers);
             string nameSusDreapta = (tileSusDreapta is Tile t3) ? t3.sprite.name : tileSusDreapta.name;
@@ -93,7 +95,7 @@ public class Test : MonoBehaviour
                 downPatterns.Add(pid);
 
             // Sus-stanga (0,N-1)
-            int idxSusStanga = pat.GetGridValue(0, N - 1);
+            int idxSusStanga = pattern.GetGridValue(0, N - 1);
             var tileSusStanga = valueManager.GetValueFromIndex(idxSusStanga).value;
             // var tileSusStanga = FindTileByIndex(idxSusStanga, allValueManagers);
             string nameSusStanga = (tileSusStanga is Tile t4) ? t4.sprite.name : tileSusStanga.name;
@@ -102,10 +104,10 @@ public class Test : MonoBehaviour
         }
 
         // Poți afișa sau folosi mai departe aceste seturi!
-        Debug.Log($"leftPatterns index : {string.Join(",", leftPatterns)}");
-        Debug.Log($"rightPatterns index : {string.Join(",", rightPatterns)}");
-        Debug.Log($"downPatterns index : {string.Join(",", downPatterns)}");
-        Debug.Log($"upPatterns index : {string.Join(",", upPatterns)}");
+        // Debug.Log($"leftPatterns index : {string.Join(",", leftPatterns)}");
+        // Debug.Log($"rightPatterns index : {string.Join(",", rightPatterns)}");
+        // Debug.Log($"downPatterns index : {string.Join(",", downPatterns)}");
+        // Debug.Log($"upPatterns index : {string.Join(",", upPatterns)}");
 
 
         // //Left input patterns:
@@ -199,24 +201,28 @@ public class Test : MonoBehaviour
 
     public void CreateTilemap()
     {
+#if UNITY_EDITOR
+        Debug.ClearDeveloperConsole();
+#endif
+
         output = new TilemapOutput(valueManager, outputTilemap);
         int[][] result = core.CreateOutputGrid();//colapsam patterns si avem rezultatul result
 
         // —— debug: ce pattern-uri au ajuns pe coloana 0 în output? ——
-        Debug.Log("=== Patterns rezultate stanga ===");
-        for (int row = 0; row < result.Length; row++)
-        {
-            int ind = result[row][0];//indexul pattern-ului
-            var pattern = patternManager.GetPatternDataFromIndex(ind).Pattern;//pattern
-            int valIndex = pattern.GetGridValue(0, 0);//coltul stanga-jos din pattern
-            var tb = valueManager.GetValueFromIndex(valIndex).value;//IValue<Tilebase>
-            string spriteName = (tb is Tile t)
-                ? t.sprite.name
-                : tb.name;//nume sprite
+        // Debug.Log("=== Patterns rezultate stanga ===");
+        // for (int row = 0; row < result.Length; row++)
+        // {
+        //     int ind = result[row][0];//indexul pattern-ului
+        //     var pattern = patternManager.GetPatternDataFromIndex(ind).Pattern;//pattern
+        //     int valIndex = pattern.GetGridValue(0, 0);//coltul stanga-jos din pattern
+        //     var tb = valueManager.GetValueFromIndex(valIndex).value;//IValue<Tilebase>
+        //     string spriteName = (tb is Tile t)
+        //         ? t.sprite.name
+        //         : tb.name;//nume sprite
 
-            Debug.Log($"row {row}: pattern {ind}, sprite={spriteName}");
-        }
-        Debug.Log("=======================================");
+        //     Debug.Log($"row {row}: pattern {ind}, sprite={spriteName}");
+        // }
+        // Debug.Log("=======================================");
 
         if (result.Length == 0)
         {

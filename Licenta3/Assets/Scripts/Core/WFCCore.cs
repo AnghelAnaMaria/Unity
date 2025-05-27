@@ -56,19 +56,19 @@ namespace WaveFunctionCollapse
                     if (innerIteration <= 0)
                     {
                         Debug.Log("Propagation is taking too long");
-                        Debug.Log("Remaining pattern possibilities:");
-                        for (int y = 0; y < outputHeight; y++)
-                        {
-                            for (int x = 0; x < outputWidth; x++)
-                            {
-                                Vector2Int pos = new Vector2Int(x, y);
-                                if (!outputGrid.CheckIfCellIsCollapsed(pos))
-                                {
-                                    var poss = outputGrid.GetPossibleValuesForPosition(pos);
-                                    Debug.Log($"Cell ({x},{y}): {string.Join(",", poss)}");
-                                }
-                            }
-                        }
+                        // Debug.Log("Remaining pattern possibilities:");
+                        // for (int y = 0; y < outputHeight; y++)
+                        // {
+                        //     for (int x = 0; x < outputWidth; x++)
+                        //     {
+                        //         Vector2Int pos = new Vector2Int(x, y);
+                        //         if (!outputGrid.CheckIfCellIsCollapsed(pos))
+                        //         {
+                        //             var poss = outputGrid.GetPossibleValuesForPosition(pos);
+                        //             Debug.Log($"Cell ({x},{y}): {string.Join(",", poss)}");
+                        //         }
+                        //     }
+                        // }
                         return new int[0][];
                     }
                 }
@@ -76,10 +76,15 @@ namespace WaveFunctionCollapse
                 if (coreSolver.CheckForConflicts())
                 {
                     Debug.Log("\nConflict occurred. Iteration: " + iteration);
-                    iteration++;
-                    outputGrid.ResetAllPossibilities();
-                    // ApplyInitialRestrictions();
-                    coreSolver = new CoreSolver(this.outputGrid, this.patternManager, softBanned);
+
+                    bool didBacktrack = coreSolver.BacktrackLastSteps();
+                    if (!didBacktrack)
+                    {
+                        iteration++;
+                        outputGrid.ResetAllPossibilities();
+                        // ApplyInitialRestrictions();
+                        coreSolver = new CoreSolver(this.outputGrid, this.patternManager, softBanned);
+                    }
                 }
                 else
                 {
