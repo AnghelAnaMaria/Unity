@@ -125,6 +125,24 @@ public class SimpleDungeonGenerator : MonoBehaviour
             return;
         }
 
+        var roomConfigs = apartmentConfig.GetRooms();
+        if (roomConfigs.Count < 3)
+        {
+            Debug.LogError("Apartamentul trebuie să conțină cel puțin 3 camere!");
+            return;
+        }
+
+        // verific existența tipurilor obligatorii
+        bool hasBaie = roomConfigs.Any(r => r.GetRoomType() == RoomType.Baie);
+        bool hasBucatarie = roomConfigs.Any(r => r.GetRoomType() == RoomType.Bucatarie);
+        bool hasDormitor = roomConfigs.Any(r => r.GetRoomType() == RoomType.Dormitor);
+
+        if (!hasBaie || !hasBucatarie || !hasDormitor)
+        {
+            Debug.LogError("Apartamentul trebuie să conțină cel puțin o Baie, o Bucătărie și un Dormitor!");
+            return;
+        }
+
         List<Room> localGeneratedRooms = new List<Room>();
         foreach (var item in apartmentConfig.GetRooms())
         {
