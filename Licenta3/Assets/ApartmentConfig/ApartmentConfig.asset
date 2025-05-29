@@ -25,5 +25,5 @@ MonoBehaviour:
     roomDimensions: {x: 6, y: 6}
   - roomType: 3
     roomDimensions: {x: 4, y: 6}
-  includeOpenSpaceKitchen: 0
-  includeOpenSpaceLivingRoom: 0
+  includeOpenSpaceKitchen: 1
+  includeOpenSpaceLivingRoom: 1

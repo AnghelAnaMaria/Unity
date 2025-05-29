@@ -30,6 +30,12 @@ public class SimpleDungeonGenerator : MonoBehaviour
 
     [SerializeField] private ApartmentConfig apartmentConfig;
 
+    private Vector2Int startBorderDirection;
+    private Vector2Int endBorderDirection;
+    private Vector2Int centerA;
+    private Vector2Int centerB;
+
+
     private void Awake()
     {
         dungeonData = DungeonData.Instance;
@@ -176,17 +182,22 @@ public class SimpleDungeonGenerator : MonoBehaviour
         List<bool> LShapeGroups = PlaceRoomsProcedurally(listRooms, 0, listRooms.Count);
 
         //ConnectFirstTwoGroupsWithAStar(dungeonData.GetListRoomGroups(), dungeonData.GetDirections(), LShapeGroups);//merge
-        ConnectGroupCentersWithAStar(dungeonData.GetListRoomGroups());
-        FillHallGaps();
-        // ConnectBetweenGroupsWithAStar(dungeonData.GetListRoomGroups(), 0, dungeonData.GetListRoomGroups().Count, dungeonData.GetDirections());//merge
-        // FillHallGaps();
-        // ConnectDisjointHalls(dungeonData.GetHalls());
-        // ConnectRoomsWithClosestHall(dungeonData.GetListRoomGroups(), 0, dungeonData.GetListRoomGroups().Count, dungeonData.GetHalls());
-        // FillHallGaps();
-        //  PruneIsolatedHallTiles();
-        //  ExtendHallToMaxForAllRooms();
-        //  FillHallGaps();
 
+        ConnectGroupCentersWithAStar(dungeonData.GetListRoomGroups());//pt primele 2 grupe
+        HashSet<Room> roomsFreeBorderGroup1 = GetRoomsWithFreeBorderTiles(dungeonData.GetListRoomGroups()[0], startBorderDirection);
+        HashSet<Room> roomsFreeBorderGroup2 = GetRoomsWithFreeBorderTiles(dungeonData.GetListRoomGroups()[1], endBorderDirection);
+        ConnectRoomsWithFreeBordersToNearestHall(roomsFreeBorderGroup1, startBorderDirection, dungeonData.GetHalls()[0]);
+        ConnectRoomsWithFreeBordersToNearestHall(roomsFreeBorderGroup2, endBorderDirection, dungeonData.GetHalls()[0]);
+
+
+        ConnectBetweenGroupsWithAStar(dungeonData.GetListRoomGroups(), 0, dungeonData.GetListRoomGroups().Count, dungeonData.GetDirections());//merge
+        ConnectRoomsWithClosestHall(dungeonData.GetListRoomGroups(), 2, dungeonData.GetListRoomGroups().Count, dungeonData.GetHalls());
+        ConnectDisjointHalls(dungeonData.GetHalls());
+
+        ExtendHallToMaxForAllRooms();
+        FillHallGaps();
+        FillHallGaps();
+        PruneIsolatedHallTiles();
 
 
 
@@ -205,10 +216,9 @@ public class SimpleDungeonGenerator : MonoBehaviour
 
         }
 
-        //FillInteriorHoles();
         //Kitchen:
-        //  List<WallData> walls = FindExteriorWalls(dungeonData.GetRooms());
-        //  DrawOnKitchenWalls(walls);
+        List<WallData> walls = FindExteriorWalls(dungeonData.GetRooms());
+        DrawOnKitchenWalls(walls);
 
     }
 
@@ -295,7 +305,7 @@ public class SimpleDungeonGenerator : MonoBehaviour
 
                 roomPositions[currentRoom] = position;
                 occupiedPositions.UnionWith(groupRoomCreated.GetFloorTiles());
-                lastRoom = currentRoom;
+                // lastRoom = currentRoom;
 
             }
             dungeonData.AddGroup(newGroup);
@@ -311,7 +321,7 @@ public class SimpleDungeonGenerator : MonoBehaviour
                 {
                     foreach (var candidate in candidates)
                     {
-                        Vector2Int position = tile + candidate;
+                        Vector2Int position = tile + 2 * candidate;
                         if (!occupiedPositions.Contains(position) && !dungeonData.GetDungeonRoomTiles().Contains(position))
                         {
                             occupiedPositions.Add(position);
@@ -709,10 +719,13 @@ public class SimpleDungeonGenerator : MonoBehaviour
             return;
         }
 
-        Vector2Int centerA = CalculateGroupCenter(roomGroups[0]);
-        Vector2Int centerB = CalculateGroupCenter(roomGroups[1]);
-        Vector2Int start = GetNearestWalkableBorderTile(roomGroups[0], centerB);
-        Vector2Int end = GetNearestWalkableBorderTile(roomGroups[1], centerA);
+        centerA = CalculateGroupCenter(roomGroups[0]);
+        centerB = CalculateGroupCenter(roomGroups[1]);
+        Vector2Int start = GetNearestWalkableBorderTile(roomGroups[0], centerB).closestTile;
+        Vector2Int end = GetNearestWalkableBorderTile(roomGroups[1], centerA).closestTile;
+
+        startBorderDirection = GetNearestWalkableBorderTile(roomGroups[0], centerB).borderDirection;//startBorderDirection e proprietate privata in acest script
+        endBorderDirection = GetNearestWalkableBorderTile(roomGroups[1], centerA).borderDirection;//endBorderDirection e proprietate privata in acest script
         List<Vector2Int> path = AStarPathfinder.AStarPathfindingExtended(start, end);
         Vector2Int median = (Vector2Int)(start + end) / 2;
 
@@ -757,22 +770,27 @@ public class SimpleDungeonGenerator : MonoBehaviour
     }
 
 
-    private Vector2Int GetNearestWalkableBorderTile(List<Room> group, Vector2Int center)
+    private ClosestBorderTileResult GetNearestWalkableBorderTile(List<Room> group, Vector2Int center)
     {
-        HashSet<Vector2Int> borderTiles = new HashSet<Vector2Int>();
+        Dictionary<Vector2Int, Vector2Int> tileToDir = new Dictionary<Vector2Int, Vector2Int>();//dictionar (border tile, directia)
+
         foreach (var room in group)
         {
-            foreach (var tile in room.GetLeftTiles()) borderTiles.Add(tile + Vector2Int.left);
-            foreach (var tile in room.GetRightTiles()) borderTiles.Add(tile + Vector2Int.right);
-            foreach (var tile in room.GetUpTiles()) borderTiles.Add(tile + Vector2Int.up);
-            foreach (var tile in room.GetDownTiles()) borderTiles.Add(tile + Vector2Int.down);
+            foreach (var tile in room.GetLeftTiles()) tileToDir[tile + Vector2Int.left] = Vector2Int.left;
+            foreach (var tile in room.GetRightTiles()) tileToDir[tile + Vector2Int.right] = Vector2Int.right;
+            foreach (var tile in room.GetUpTiles()) tileToDir[tile + Vector2Int.up] = Vector2Int.up;
+            foreach (var tile in room.GetDownTiles()) tileToDir[tile + Vector2Int.down] = Vector2Int.down;
         }
 
         int shortestDistance = int.MaxValue;
         Vector2Int closestTile = Vector2Int.zero;
+        Vector2Int closestDirection = Vector2Int.zero;
 
-        foreach (var tile in borderTiles)
+        foreach (var kvp in tileToDir)
         {
+            var tile = kvp.Key;
+            var dir = kvp.Value;
+
             if (AStarPathfinder.IsWalkable(tile))
             {
                 int dist = AStarPathfinder.ManhattanDistance(tile, center);
@@ -780,17 +798,145 @@ public class SimpleDungeonGenerator : MonoBehaviour
                 {
                     shortestDistance = dist;
                     closestTile = tile;
+                    closestDirection = dir;
                 }
             }
-
         }
+
         if (shortestDistance == int.MaxValue)
         {
             Debug.LogWarning("No walkable border tile found! Check your room placement.");
-            return center; // fallback
+            return new ClosestBorderTileResult { closestTile = center, borderDirection = Vector2Int.zero };
         }
-        return closestTile;
 
+        return new ClosestBorderTileResult { closestTile = closestTile, borderDirection = closestDirection };//returnam un struct ClosestBorderTileResult
+    }
+
+    //Border tiles from Room object
+    private HashSet<Room> GetRoomsWithFreeBorderTiles(List<Room> group, Vector2Int direction)
+    {
+        switch (direction)
+        {
+            case var d when d == Vector2Int.left:
+                return GetFreeBorderTilesForGivenDirection(group, r => r.GetLeftTiles(), Vector2Int.left);
+
+            case var d when d == Vector2Int.right:
+                return GetFreeBorderTilesForGivenDirection(group, r => r.GetRightTiles(), Vector2Int.right);
+
+            case var d when d == Vector2Int.up:
+                return GetFreeBorderTilesForGivenDirection(group, r => r.GetUpTiles(), Vector2Int.up);
+
+            case var d when d == Vector2Int.down:
+                return GetFreeBorderTilesForGivenDirection(group, r => r.GetDownTiles(), Vector2Int.down);
+
+            default:
+                Debug.LogWarning("Direcție necunoscută în GetFullyFreeBorderTilesForDirection!");
+                return new HashSet<Room>();
+        }
+    }
+
+    private HashSet<Room> GetFreeBorderTilesForGivenDirection(List<Room> group, Func<Room, List<Vector2Int>> getBorderTilesFunc, Vector2Int direction)
+    {
+        var roomsToConnect = new HashSet<Room>();
+        var dungeonRoomTiles = dungeonData.GetDungeonRoomTiles();
+
+        foreach (var room in group)//pt fiecare camera din grup
+        {
+            bool allFree = true;
+            foreach (Vector2Int tile in getBorderTilesFunc(room))//pt fiecare tile in directia data
+            {
+                var borderTile = tile + direction;//border
+                if (dungeonRoomTiles.Contains(borderTile))
+                {
+                    allFree = false;
+                    break;
+                }
+            }
+            if (allFree)
+            {
+                roomsToConnect.Add(room);
+            }
+        }
+        return roomsToConnect;
+    }
+
+    private void ConnectRoomsWithFreeBordersToNearestHall(HashSet<Room> roomsWithFreeBorders, Vector2Int direction, Hall hall)
+    {
+        Func<Room, List<Vector2Int>> getBorderTilesFunc = room => direction == Vector2Int.left ? room.GetLeftTiles()
+       : direction == Vector2Int.right ? room.GetRightTiles()
+       : direction == Vector2Int.up ? room.GetUpTiles()
+       : room.GetDownTiles();
+
+
+        foreach (Room room in roomsWithFreeBorders)
+        {
+            if (!IsRoomConnected(room))
+            {
+                if (hall != null)
+                {
+                    dungeonData.AddRoomStartEnd(room);
+                    List<Vector2Int> hallTiles = hall.GetFloorTiles();
+                    List<Vector2Int> borderTiles = getBorderTilesFunc(room).Select(t => t + direction).ToList();//Ia toate tile-urile de pe muchia respectivă cu offset spre exterior
+
+                    // verifică ambele seturi de „tile”-uri
+                    if (hallTiles == null || hallTiles.Count == 0 ||
+                        borderTiles == null || borderTiles.Count == 0)
+                    {
+                        Debug.LogWarning("Nu sunt puncte de conectare valide — sărim peste acest cuplaj.");
+                        continue;
+                    }
+
+                    Vector2Int bestStart = borderTiles[0];
+                    Vector2Int bestEnd = hallTiles[0];
+                    int bestDist = int.MaxValue;
+                    foreach (var cTile in borderTiles)
+                    {
+                        foreach (var hTile in hallTiles)
+                        {
+                            int dist = AStarPathfinder.ManhattanDistance(cTile, hTile);
+                            if (dist < bestDist)
+                            {
+                                bestDist = dist;
+                                bestStart = cTile;
+                                bestEnd = hTile;
+                            }
+                        }
+                    }
+                    Debug.Log("start: " + bestStart);
+                    Debug.Log("end: " + bestEnd);
+
+                    List<Vector2Int> corridor = AStarPathfinder.AStarPathfindingExtended(bestStart, bestEnd);
+
+                    //if (IsCorridorOk(new List<List<Room>> { currentGroup }, corridor) == false)
+                    {
+                        // continue;
+                    }
+                    /*foreach (var tile in corridor)
+                    {
+                        Debug.Log("tile: " + tile);
+                    }*/
+
+                    if (corridor == null || corridor.Count == 0)
+                    {
+                        Debug.LogWarning($"Nu s-a putut genera coridor între {bestStart} și {bestEnd}");
+                        continue;
+                    }
+
+                    List<Vector2Int> thickCorridor = ExpandCorridorThickness(corridor, dungeonData.GetDungeonRoomTiles(), dungeonData.GetDungeonHallTiles());
+                    //Hall
+                    foreach (var tile in thickCorridor)
+                    {
+                        if (!dungeonData.GetDungeonHallTiles().Contains(tile))
+                        {
+                            hall.AddFloorTiles(tile);
+                            dungeonData.AddDungeonHallTiles(tile);
+                            Vector3Int tilePosition = new Vector3Int(tile.x, tile.y, 0);
+                            paths.SetTile(tilePosition, floorTile);
+                        }
+                    }
+                }
+            }
+        }
     }
 
 
@@ -803,20 +949,17 @@ public class SimpleDungeonGenerator : MonoBehaviour
         var occupied = new HashSet<Vector2Int>(hallTiles);
         occupied.UnionWith(roomTiles);
 
-        // 2. Toate direcțiile (4 cardinale + 4 diagonale)
         Vector2Int[] dirs = {
-                Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right,
-                new Vector2Int(1,1),   new Vector2Int(1,-1),
-                new Vector2Int(-1,1),  new Vector2Int(-1,-1)
-            };
+                Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right};
 
-        // 3. Găsim candidații: neighborii hol‑urilor
+        // gasim candidatii: vecinii holurilor
         var candidates = new HashSet<Vector2Int>();
+
         foreach (var h in hallTiles)
             foreach (var d in dirs)
-                candidates.Add(h + d);//candidati sunt tiles collider de langa Hall
+                candidates.Add(h + d);//candidati sunt tiles de langa Hall
 
-        // 4. Pentru fiecare candidat, testăm sus+jos sau stânga+dreapta
+        // pentru fiecare candidat, testăm sus+jos sau stânga+dreapta
         foreach (var t in candidates)
         {
             bool up = occupied.Contains(t + Vector2Int.up);
@@ -824,7 +967,6 @@ public class SimpleDungeonGenerator : MonoBehaviour
             bool left = occupied.Contains(t + Vector2Int.left);
             bool right = occupied.Contains(t + Vector2Int.right);
 
-            // dacă e „vertical gap” sau „horizontal gap”
             if ((up && down) || (left && right))
             {
                 paths.SetTile(new Vector3Int(t.x, t.y, 0), floorTile);
@@ -836,35 +978,32 @@ public class SimpleDungeonGenerator : MonoBehaviour
 
     private void PruneIsolatedHallTiles()
     {
-        // 1. Construim seturile de referință
         var roomTiles = new HashSet<Vector2Int>(dungeonData.GetDungeonRoomTiles());
         var hallTiles = new HashSet<Vector2Int>(dungeonData.GetDungeonHallTiles());
 
-        // occupied = hol + camere
         var occupied = new HashSet<Vector2Int>(hallTiles);
         occupied.UnionWith(roomTiles);
 
-        // 2. Găsim holurile care trebuie eliminate
+        // gasim holurile care trebuie eliminate
         var toRemove = new List<Vector2Int>();
+
         foreach (var h in hallTiles)
         {
-            bool hor = occupied.Contains(h + Vector2Int.left)
-                    && occupied.Contains(h + Vector2Int.right);
-            bool ver = occupied.Contains(h + Vector2Int.up)
-                    && occupied.Contains(h + Vector2Int.down);
+            int neighborCount = 0;
+            if (occupied.Contains(h + Vector2Int.left)) neighborCount++;
+            if (occupied.Contains(h + Vector2Int.right)) neighborCount++;
+            if (occupied.Contains(h + Vector2Int.up)) neighborCount++;
+            if (occupied.Contains(h + Vector2Int.down)) neighborCount++;
 
-            // dacă nu e „sus+jos” sau „stânga+dreapta”, îl eliminăm
-            if (!ver || !hor)
+            // daca are EXACT un vecin, il eliminam:
+            if (neighborCount == 1)
                 toRemove.Add(h);
         }
 
-        // 3. Înlăturăm efectiv tile-urile din Tilemap și din dungeonData
+        // inlaturam efectiv tile-urile din Tilemap si din dungeonData
         foreach (var t in toRemove)
         {
-            // pe paths Tilemap, ștergem tile-ul
             paths.SetTile(new Vector3Int(t.x, t.y, 0), null);
-
-            // din lista de hol-uri din dungeonData
             dungeonData.RemoveDungeonHallTile(t);
         }
 
@@ -900,7 +1039,6 @@ public class SimpleDungeonGenerator : MonoBehaviour
 
                     if (closestHall != null)
                     {
-                        dungeonData.AddRoomStartEnd(roomA);
                         List<Vector2Int> hallBTiles = closestHall.GetFloorTiles();
                         List<Vector2Int> roomATiles = GetFreeTiles(roomA);
 
@@ -928,9 +1066,6 @@ public class SimpleDungeonGenerator : MonoBehaviour
                                 }
                             }
                         }
-                        Debug.Log("start: " + bestStart);
-                        Debug.Log("end: " + bestEnd);
-
                         List<Vector2Int> corridor = AStarPathfinder.AStarPathfindingExtended(bestStart, bestEnd);
 
                         //if (IsCorridorOk(new List<List<Room>> { currentGroup }, corridor) == false)
@@ -947,10 +1082,9 @@ public class SimpleDungeonGenerator : MonoBehaviour
                             Debug.LogWarning($"Nu s-a putut genera coridor între {bestStart} și {bestEnd}");
                             continue;
                         }
-
-                        var roomTiles = dungeonData.GetDungeonRoomTiles();
-                        var hallTiles = dungeonData.GetDungeonHallTiles();
-                        List<Vector2Int> thickCorridor = ExpandCorridorThickness(corridor, roomTiles, hallTiles);
+                        dungeonData.AddRoomStartEnd(roomA);
+                        dungeonData.AddLenghtStartEnd(corridor.Count);
+                        List<Vector2Int> thickCorridor = ExpandCorridorThickness(corridor, dungeonData.GetDungeonRoomTiles(), dungeonData.GetDungeonHallTiles());
 
                         //Create Hall
                         Hall newHall = new Hall(Vector2Int.zero, Vector2Int.zero);
@@ -958,7 +1092,7 @@ public class SimpleDungeonGenerator : MonoBehaviour
                         newHall.SetHallCenter(median);
                         foreach (var tile in thickCorridor)
                         {
-                            if (!dungeonData.GetDungeonHallTiles().Contains(tile))
+                            if (!dungeonData.GetDungeonHallTiles().Contains(tile) && !dungeonData.GetDungeonRoomTiles().Contains(tile))
                             {
                                 newHall.AddFloorTiles(tile);
                                 dungeonData.AddDungeonHallTiles(tile);
@@ -1037,7 +1171,7 @@ public class SimpleDungeonGenerator : MonoBehaviour
             foreach (var dir in DungeonData.fourDirections)
             {
                 Vector2Int pos = tile + dir;
-                if (!dungeonData.GetDungeonRoomTiles().Contains(pos))
+                if (!dungeonData.GetDungeonRoomTiles().Contains(pos) && !dungeonData.GetDungeonHallTiles().Contains(pos))
                 {
                     freePositions.Add(pos);
                 }
@@ -1123,14 +1257,12 @@ public class SimpleDungeonGenerator : MonoBehaviour
 
         if (roomGroups.Count < 2)
             return;
-        //int ran = UnityEngine.Random.Range(2, roomGroups.Count - 1);
+
         for (int i = contorFirst; i < contorLast - 1; i++)
         {
             List<Room> currentGroup = roomGroups[i];
             List<Room> nextGroup = roomGroups[i + 1];//2 grupuri consecutive
 
-            // Room roomA = currentGroup[currentGroup.Count - 1];
-            // dungeonData.AddRoomStartEnd(roomA);
             Room initRoom = null;
             Room closestRoom = null;
             int shortestDistance = int.MaxValue;
@@ -1149,10 +1281,8 @@ public class SimpleDungeonGenerator : MonoBehaviour
                 }
             }
 
-            dungeonData.AddRoomStartEnd(initRoom);
-            dungeonData.AddRoomStartEnd(closestRoom);
 
-            if (closestRoom != null)
+            if (closestRoom != null && initRoom != null)
             {
                 int widthStart = GetSideLength(initRoom, directions[i]);
                 int widthEnd = GetSideLength(closestRoom, (directions[i] + 2) % 4);
@@ -1163,7 +1293,6 @@ public class SimpleDungeonGenerator : MonoBehaviour
                     Vector2Int start = proposedStart;
                     Vector2Int end = GetRoomExitTile(closestRoom, proposedStart);
                     Vector2Int median = (start + end) / 2;
-                    //  Debug.Log($"(Normala) START: {start}, END: {end}");
 
                     int corridorWidth = widthStart;
 
@@ -1178,6 +1307,8 @@ public class SimpleDungeonGenerator : MonoBehaviour
 
                     if (start.x == end.x || start.y == end.y)
                     {
+                        dungeonData.AddRoomStartEnd(closestRoom);
+                        dungeonData.AddRoomStartEnd(initRoom);
                         CreateNewHall(corridor, corridorWidth, directions[i], median);
                     }
                     else
@@ -1194,7 +1325,6 @@ public class SimpleDungeonGenerator : MonoBehaviour
                     Vector2Int start = proposedStart;
                     Vector2Int end = GetRoomExitTile(initRoom, proposedStart);
                     Vector2Int median = (start + end) / 2;
-                    //  Debug.Log($"(Invers) START: {start}, END: {end}");
 
                     int corridorWidth = widthEnd;
 
@@ -1209,6 +1339,8 @@ public class SimpleDungeonGenerator : MonoBehaviour
 
                     if (start.x == end.x || start.y == end.y)
                     {
+                        dungeonData.AddRoomStartEnd(closestRoom);
+                        dungeonData.AddRoomStartEnd(initRoom);
                         CreateNewHall(corridor, corridorWidth, reverseDir, median);
                     }
                     else
@@ -1260,7 +1392,7 @@ public class SimpleDungeonGenerator : MonoBehaviour
     {
         Hall hall = new Hall(Vector2Int.zero, Vector2Int.zero); //nu am nevoie de dimensiunea holului
         int half;
-        bool isOdd = corridorWidth % 2 != 0;
+        bool isOdd = corridorWidth % 2 != 0;//daca e impar
 
         if (isOdd)
         {
@@ -1270,8 +1402,6 @@ public class SimpleDungeonGenerator : MonoBehaviour
         {
             half = corridorWidth / 2;
         }
-
-        if (isOdd) half = (corridorWidth - 1) / 2;
 
         if (direction == 1 || direction == 3) //LEFT-RIGHT hall
         {
@@ -1327,7 +1457,7 @@ public class SimpleDungeonGenerator : MonoBehaviour
         };
     }
 
-    private void ConnectDisjointHalls(List<Hall> halls)
+    private void ConnectDisjointHalls(List<Hall> halls)//halls= copie a listei List<Hall> din dungeonData 
     {
         Debug.Log("Metoda ConnectDisjointHalls a fost apelata!");
 
@@ -1383,8 +1513,6 @@ public class SimpleDungeonGenerator : MonoBehaviour
                         }
                     }
                 }
-                Debug.Log("start: " + bestStart);
-                Debug.Log("end: " + bestEnd);
 
                 List<Vector2Int> corridor = AStarPathfinder.AStarPathfindingExtended(bestStart, bestEnd);
                 /*foreach (var tile in corridor)
@@ -1407,7 +1535,7 @@ public class SimpleDungeonGenerator : MonoBehaviour
                 newHall.SetHallCenter(median);
                 foreach (var tile in thickCorridor)
                 {
-                    if (!dungeonData.GetDungeonHallTiles().Contains(tile))
+                    if (!dungeonData.GetDungeonHallTiles().Contains(tile) && !dungeonData.GetDungeonRoomTiles().Contains(tile))
                     {
                         newHall.AddFloorTiles(tile);
                         dungeonData.AddDungeonHallTiles(tile);
@@ -1418,7 +1546,7 @@ public class SimpleDungeonGenerator : MonoBehaviour
                 dungeonData.AddHall(newHall);
 
 
-                //Adăugăm newHall la începutul listei pentru ca la următoarea iterație, hallA să fie newHall (adică, cel ce a fost înainte closestHall).
+                //Adăugăm closestHall la începutul listei pentru ca la următoarea iterație, closestHall să fie noul Hall de conectat (astfel vom avea un drum conex din aproape in aproape).
                 halls.Insert(0, closestHall);
             }
         }
@@ -1496,11 +1624,11 @@ public class SimpleDungeonGenerator : MonoBehaviour
                     for (int step = 1; step <= maxLeft; step++)
                     {
                         var t = start + Vector2Int.left * step;
-                        if (dungeonData.GetDungeonRoomTiles().Contains(t))
+                        if (dungeonData.GetDungeonRoomTiles().Contains(t))// daca dam de camera ne oprim
                         {
                             break;
                         }
-                        if (!dungeonData.GetDungeonHallTiles().Contains(t))
+                        if (!dungeonData.GetDungeonHallTiles().Contains(t))// daca patratica e goala punem parcela de hol
                         {
                             paths.SetTile((Vector3Int)t, floorTile);
                             dungeonData.AddDungeonHallTiles(t);

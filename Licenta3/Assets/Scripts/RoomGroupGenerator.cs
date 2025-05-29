@@ -4,10 +4,12 @@ using UnityEngine;
 using System.Linq;
 public static class RoomGroupGenerator
 {
-    // Clasa internă pentru șablon (template) – reprezintă o combinație dorită
+    //Clasa internă pentru șablon (template) – reprezintă o combinație dorită
     private class RoomGroupTemplate
     {
         public List<RoomType> Types { get; private set; }
+
+        //Constructor:
         public RoomGroupTemplate(List<RoomType> types)
         {
             Types = types;
@@ -15,10 +17,10 @@ public static class RoomGroupGenerator
     }
 
 
-    /// Generează grupurile de camere pe baza unor șabloane de configurații.
+    //Generează grupurile de camere pe baza unor șabloane de configurații.
     public static List<List<Room>> GenerateRoomGroups(List<Room> rooms)
     {
-        // 1. Creăm pool-uri (cozi) pentru fiecare tip
+        // 1.Creăm pool-uri (cozi) pentru fiecare tip
         Dictionary<RoomType, Queue<Room>> pools = new Dictionary<RoomType, Queue<Room>>();
         foreach (RoomType rt in RoomType.GetValues(typeof(RoomType)))
         {
@@ -29,7 +31,7 @@ public static class RoomGroupGenerator
             pools[room.GetRoomType()].Enqueue(room);
         }
 
-        // 2. Definim șabloanele de grup, în ordinea de prioritate dorită.
+        // 2.Definim șabloanele de grup, în ordinea de prioritate dorită.
         List<RoomGroupTemplate> templates = new List<RoomGroupTemplate>
     {
         new RoomGroupTemplate(new List<RoomType> { RoomType.Dormitor, RoomType.Birou, RoomType.Baie}),
@@ -51,7 +53,7 @@ public static class RoomGroupGenerator
         new RoomGroupTemplate(new List<RoomType> { RoomType.Sufragerie })
     };
 
-        // 3. Formăm grupurile conform șabloanelor, repetând procesul cât timp se poate forma vreun grup.
+        // 3.Formăm grupurile conform șabloanelor, repetând procesul cât timp se poate forma vreun grup.
         List<List<Room>> groups = new List<List<Room>>();
         bool formedGroup = true;
         while (formedGroup)
@@ -97,7 +99,7 @@ public static class RoomGroupGenerator
             }
         }
 
-        // 4. Pentru orice cameră rămasă în pool, formăm grupuri individuale.
+        // 4.Pentru orice cameră rămasă în pool, formăm grupuri individuale.
         foreach (var kvp in pools)
         {
             while (kvp.Value.Count > 0)
