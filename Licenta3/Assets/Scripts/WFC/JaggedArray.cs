@@ -7,17 +7,16 @@ using UnityEngine;
 
 namespace Helpers
 {//construiesc generice n-dimensionale de jagged arrays
-    public static class MyCollectionExtension
+    public static class JaggedArray
     {
         public static T CreateJaggedArray<T>(params int[] lengths)//exemplu: T=TileBaseValue[][];
         {
-            return (T)InitializeJaggedArray(typeof(T).GetElementType(), 0, lengths);//typeof(T) returnează un obiect System.Type care reprezintă tipul generic T în întregime
+            return (T)InitializeJaggedArray(typeof(T).GetElementType(), 0, lengths);//typeof(T) returnează un obiect System.Type care reprezintă tipul generic T în întregime, adica TileBaseValue[][] din exemplu
         }                                            //GetElementType() îmi spune: „dă-mi tipul primului nivel de array” ca să știu ce să aloc pentru array[0], array[1], …
 
-        static object InitializeJaggedArray(Type type, int index, int[] lengths)//index= nivelul de recursiune
+        static object InitializeJaggedArray(Type type, int index, int[] lengths)//index= nivelul de recursiune;  type= tipul elementului pe care vreau să-l creez (ex: int[], int[][])
         {
-            //Creăm un array de «type» cu lungimea lengths[index]
-            Array array = Array.CreateInstance(type, lengths[index]);
+            Array array = Array.CreateInstance(type, lengths[index]);//creeaza liniile de array
             //Vedem dacă «type» e la rândul lui array (GetElementType()!=null)
             Type elementType = type.GetElementType();
             if (elementType != null)
@@ -34,7 +33,7 @@ namespace Helpers
 
         public static bool CheckJaggedArray2dIndexIsValid<T>(this T[][] array, int x, int y)
         {
-            if (array == null)//|| x >= array.Length || array[0] == null || y >= array[0].Length || x < 0 || y < 0
+            if (array == null)
             {
                 return false;
             }

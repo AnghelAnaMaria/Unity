@@ -5,9 +5,9 @@ using UnityEngine;
 
 namespace WaveFunctionCollapse
 {//interfata ca sa ne asiguram ca clasele care o mostenesc au jagged array completat cu IValue<T>
-    public interface IInputReader<T>
+    public interface IGenericInput<T>
     {
-        IValue<T>[][] ReadInputToGrid();
+        IVal<T>[][] ReadInputToGrid();
     }
 
 }

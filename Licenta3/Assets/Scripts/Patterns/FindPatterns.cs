@@ -10,9 +10,9 @@ using Helpers;
 namespace WaveFunctionCollapse
 {//Gasim patterns mergand cu o fereastra peste Tilemap-ul din scena (transformat in grid de int) si salvam aceste paterns intr-un obiect PatternDataResults.
  //clasa responsabilă de scanarea grilei de indici (produsă de ValuesManager) si de extragerea pattern-urile unice, de indexarea pattern-urilor, de calcularea frecvenţele lor şi, apoi, de generarea regulilor de vecinătate.
-    public class PatternFinder
+    public class FindPatterns
     {
-        internal static PatternDataResults GetPatternDataFromGrid<T>(ValuesManager<T> valuesManager, int patternSize, bool equalWeights)//internal este un modificator de acces care înseamnă „vizibil doar în acest assembly”. 
+        internal static PatternResults GetPatternDataFromGrid<T>(InputManager<T> valuesManager, int patternSize, bool equalWeights)//internal este un modificator de acces care înseamnă „vizibil doar în acest assembly”. 
         { //                                                                      ||                      ||
           //                                                              gridul de int[][] din scena      N
             Dictionary<string, PatternData> patternHashcodeDictionary = new Dictionary<string, PatternData>();//aici salvam hash-uri pt. subgrilele de NxN de int din gridul din scena
@@ -40,7 +40,7 @@ namespace WaveFunctionCollapse
             }
 
             //Matricea de indexi de patterns:
-            int[][] patternIndicesGrid = MyCollectionExtension.CreateJaggedArray<int[][]>(patternGridSizeY, patternGridSizeX);
+            int[][] patternIndicesGrid = JaggedArray.CreateJaggedArray<int[][]>(patternGridSizeY, patternGridSizeX);
             int totalFrequency = 0;
 
             //Creez pattern-urile:
@@ -53,7 +53,7 @@ namespace WaveFunctionCollapse
                     // 1) extrag sub-grila N×N pornind de la celula (col,row) care este coltul ferestrei NxN
                     int[][] gridValues = valuesManager.GetPatternValuesFromGridAt(col, row, patternSize);
                     // 2) calculez hash-ul pattern-ului
-                    string hashValue = HashCodeCalculator.CalculateHashCode(gridValues);
+                    string hashValue = Hash.CalculateHashCode(gridValues);
 
                     if (!patternHashcodeDictionary.ContainsKey(hashValue))//salvam local pattern-urile in dictionare
                     {
@@ -98,7 +98,7 @@ namespace WaveFunctionCollapse
                     // // (c) pentru fiecare variantă, înregistrăm sau creștem frecvența
                     // foreach (var gv in variants)
                     // {
-                    //     string h = HashCodeCalculator.CalculateHashCode(gv);
+                    //     string h = Hash.CalculateHashCode(gv);
                     //     if (!patternHashcodeDictionary.ContainsKey(h))
                     //     {
                     //         // pattern nou
@@ -128,14 +128,14 @@ namespace WaveFunctionCollapse
             }
             //Calculez frecventa pt patterns
             CalculateRelativeFrequency(patternIndexDictionary, totalFrequency);
-            return new PatternDataResults(patternIndicesGrid, patternIndexDictionary);
+            return new PatternResults(patternIndicesGrid, patternIndexDictionary);
         }
 
         //Rotim patterns:
         private static int[][] Rotate90(int[][] grid)
         {
             int N = grid.Length;
-            var r = MyCollectionExtension.CreateJaggedArray<int[][]>(N, N);
+            var r = JaggedArray.CreateJaggedArray<int[][]>(N, N);
             for (int y = 0; y < N; y++)
                 for (int x = 0; x < N; x++)
                     r[x][N - 1 - y] = grid[y][x];
@@ -162,16 +162,16 @@ namespace WaveFunctionCollapse
             patternIndexDictionary.Add(pattern.Index, data);
         }
 
-        internal static Dictionary<int, PatternNeighbours> FindPossibleNeighboursForAllPatterns(IFindNeighbourStrategy strategy, PatternDataResults patternDataResults)
+        internal static Dictionary<int, PatternNeighbours> FindPossibleNeighboursForAllPatterns(INeighbours strategy, PatternResults patternDataResults)
         {
             return strategy.FindNeighbours(patternDataResults);
         }
 
-        public static PatternNeighbours CheckNeighboursInEachDirection(int x, int y, PatternDataResults patternDataResults)//luam vecinii unui index din matricea de indexi de patterns
+        public static PatternNeighbours CheckNeighboursInEachDirection(int x, int y, PatternResults patternDataResults)//luam vecinii unui index din matricea de indexi de patterns
         {
             PatternNeighbours patternNeighbours = new PatternNeighbours();
 
-            foreach (Direction dir in Enum.GetValues(typeof(Direction)))
+            foreach (Dir dir in Enum.GetValues(typeof(Dir)))
             {
                 int possiblePatternIndex = patternDataResults.GetNeighbourInDirection(x, y, dir);//indexii vecini in toate cele 4 directii
                 if (possiblePatternIndex >= 0)

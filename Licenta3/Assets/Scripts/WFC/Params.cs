@@ -9,12 +9,12 @@ using System.Linq;
 
 namespace WaveFunctionCollapse
 {//Clasa asta obtine informatiile Tilemap-ului din scena
-    public class InputImageParameters
+    public class Params
     {
         public Vector2Int? bottomRightTileCoords = null;
         public Vector2Int? topLeftTileCoords = null; //coordOpt poate fi null sau un Vector2Int valid
         public BoundsInt inputTileMapBounds;//struct in care retin marginile x si y ale Tilemap-ului din scena
-        public TileBase[] inputTilemapTilesArray;//aici pun TileBase-urile din scena Unity (fac asta in constructor)
+        public UnityEngine.Tilemaps.TileBase[] inputTilemapTilesArray;//aici pun TileBase-urile din scena Unity (fac asta in constructor)
         public Queue<TileContainer> stackOfTiles = new Queue<TileContainer>();//stack cu referinte la Tilebase si pozitia lor (x si y)
         private int width = 0,
                     height = 0;
@@ -40,7 +40,7 @@ namespace WaveFunctionCollapse
         }
 
         //Constructor:
-        public InputImageParameters(Tilemap inputTilemap)
+        public Params(Tilemap inputTilemap)
         {
             this.inputTilemap = inputTilemap;
             this.inputTileMapBounds = this.inputTilemap.cellBounds;//cellBounds e fct in Unity, in clasa Tilemap.
@@ -56,7 +56,7 @@ namespace WaveFunctionCollapse
                 for (int col = 0; col < inputTileMapBounds.size.x; col++)
                 {
                     int index = col + (row * inputTileMapBounds.size.x);
-                    TileBase tile = inputTilemapTilesArray[index];
+                    UnityEngine.Tilemaps.TileBase tile = inputTilemapTilesArray[index];
 
                     // primul tile nenul îl marchează drept colțul din dreapta-jos
                     if (bottomRightTileCoords == null && tile != null)

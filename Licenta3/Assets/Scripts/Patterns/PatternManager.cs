@@ -15,7 +15,7 @@ namespace WaveFunctionCollapse
 
         int patternSize = -1;//dimensiunea N a sub-grilelor (pattern-urilor) N×N pe care le extragi din grid.
 
-        IFindNeighbourStrategy strategy;
+        INeighbours strategy;
 
 
         //Metode:
@@ -24,21 +24,21 @@ namespace WaveFunctionCollapse
             this.patternSize = patternSize;
         }
 
-        public IFindNeighbourStrategy ProcessStrategy(string strategyName = null)
+        public INeighbours ProcessStrategy(string strategyName = null)
         {
-            NeighbourStrategyFactory strategyFactory = new NeighbourStrategyFactory();
+            NeighboursManager strategyFactory = new NeighboursManager();
             strategy = strategyFactory.CreateInstance(strategyName == null ? patternSize + "" : strategyName);
             return strategy;
         }
 
-        public void ProcessGrid<T>(ValuesManager<T> valueManager, bool equalWeights, IFindNeighbourStrategy strategy)//avem strategie
+        public void ProcessGrid<T>(InputManager<T> valueManager, bool equalWeights, INeighbours strategy)//avem strategie
         {
             CreatePatterns(valueManager, strategy, equalWeights);
         }
 
-        private void CreatePatterns<T>(ValuesManager<T> valueManager, IFindNeighbourStrategy strategy, bool equalWeights)
+        private void CreatePatterns<T>(InputManager<T> valueManager, INeighbours strategy, bool equalWeights)
         {
-            PatternDataResults patternDataResults = PatternFinder.GetPatternDataFromGrid(valueManager, patternSize, equalWeights);//avem matricea de patterns
+            PatternResults patternDataResults = FindPatterns.GetPatternDataFromGrid(valueManager, patternSize, equalWeights);//avem matricea de patterns
             foreach (var kv in patternDataResults.patternIndexDictionary)
                 patternDataIndexDictionary.Add(kv.Key, kv.Value);
             Debug.Log($"[PatternManager] Extracted {patternDataIndexDictionary.Count} patterns: " + string.Join(",", patternDataIndexDictionary.Keys));
@@ -46,9 +46,9 @@ namespace WaveFunctionCollapse
             GetPatternNeighbours(patternDataResults, strategy);
         }
 
-        private void GetPatternNeighbours(PatternDataResults patternDataResults, IFindNeighbourStrategy strategy)
+        private void GetPatternNeighbours(PatternResults patternDataResults, INeighbours strategy)
         {
-            patternPossibleNeighboursDictionary = PatternFinder.FindPossibleNeighboursForAllPatterns(strategy, patternDataResults);//avem vecinii pt fiecare pattern
+            patternPossibleNeighboursDictionary = FindPatterns.FindPossibleNeighboursForAllPatterns(strategy, patternDataResults);//avem vecinii pt fiecare pattern
             foreach (int pid in patternDataIndexDictionary.Keys)
             {
                 if (!patternPossibleNeighboursDictionary.ContainsKey(pid))
@@ -71,7 +71,7 @@ namespace WaveFunctionCollapse
             int patternOutputWidth = outputValues[0].Length;//cate pattern-uri pe orizontala
             int valueGridHeight = patternOutputHeight + (patternSize - 1);//cate randuri are grila int[][], cu toate suprapunerile de patterns (patterns se suprapun intre ele cu N-1 celule, iar ultimul pattern se suprapune numai cu 1 celula)
             int valueGridWidth = patternOutputWidth + (patternSize - 1);//câte coloane are grila int[][]
-            int[][] valueGrid = MyCollectionExtension.CreateJaggedArray<int[][]>(valueGridHeight, valueGridWidth);//aici salvam grila cu toate valorile int ce reprezinta Tiles
+            int[][] valueGrid = JaggedArray.CreateJaggedArray<int[][]>(valueGridHeight, valueGridWidth);//aici salvam grila cu toate valorile int ce reprezinta Tiles
 
             for (int row = 0; row < patternOutputHeight; row++)
             {
@@ -123,7 +123,7 @@ namespace WaveFunctionCollapse
             return patternDataIndexDictionary[index];
         }
 
-        public HashSet<int> GetPossibleNeighboursForPatternInDirection(int patternIndex, Direction dir)
+        public HashSet<int> GetPossibleNeighboursForPatternInDirection(int patternIndex, Dir dir)
         {
             return patternPossibleNeighboursDictionary[patternIndex].GetNeighboursInDirection(dir);
         }

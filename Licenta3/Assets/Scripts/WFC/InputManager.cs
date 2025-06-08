@@ -8,20 +8,20 @@ using Helpers;
 namespace WaveFunctionCollapse
 {///Clasa ValuesManager<T> are rolul de a „traduce” grila de valori generice (IValue<T>[][]) într-o reprezentare pe bază de indici 
 ///întregi și de a oferi utilitare pentru extragerea de „pattern-uri” (sub-matrici) cu wrap-around.
-    public class ValuesManager<T>
+    public class InputManager<T>
     {
         int[][] grid;//grid[y][x] va conține, la final, indicele valorii aflate în poziția (x,y)
-        Dictionary<int, IValue<T>> valueIndexDictionary = new Dictionary<int, IValue<T>>();//valueIndexDictionary mapează fiecare indice la obiectul IValue<T> original
+        Dictionary<int, IVal<T>> valueIndexDictionary = new Dictionary<int, IVal<T>>();//valueIndexDictionary mapează fiecare indice la obiectul IValue<T> original
         int index = 0;//index este contorul pe care îl incrementăm de fiecare dată când întâlnim o valoare nouă
 
-        public ValuesManager(IValue<T>[][] gridOfValues)
+        public InputManager(IVal<T>[][] gridOfValues)
         {
             CreateGridOfIndices(gridOfValues);
         }
 
-        private void CreateGridOfIndices(IValue<T>[][] gridOfValues)
+        private void CreateGridOfIndices(IVal<T>[][] gridOfValues)
         {
-            grid = MyCollectionExtension.CreateJaggedArray<int[][]>(gridOfValues.Length, gridOfValues[0].Length);
+            grid = JaggedArray.CreateJaggedArray<int[][]>(gridOfValues.Length, gridOfValues[0].Length);
             for (int row = 0; row < gridOfValues.Length; row++)
             {
                 for (int col = 0; col < gridOfValues[0].Length; col++)
@@ -34,7 +34,7 @@ namespace WaveFunctionCollapse
         //Mapare
         //– Dacă am văzut valoarea anterior, folosesc același indice (kv.Key).
         //– Altfel îi atribui index și apoi index++.
-        private void SetIndexToGridPosition(IValue<T>[][] gridOfValues, int row, int col)
+        private void SetIndexToGridPosition(IVal<T>[][] gridOfValues, int row, int col)
         {
             var value = gridOfValues[row][col];
 
@@ -70,7 +70,7 @@ namespace WaveFunctionCollapse
             return grid[y][x];
         }
 
-        public IValue<T> GetValueFromIndex(int index)
+        public IVal<T> GetValueFromIndex(int index)
         {
             if (valueIndexDictionary.ContainsKey(index))
             {
@@ -121,7 +121,7 @@ namespace WaveFunctionCollapse
 
         public int[][] GetPatternValuesFromGridAt(int x, int y, int patternSize)
         {
-            int[][] arrayToReturn = MyCollectionExtension.CreateJaggedArray<int[][]>(patternSize, patternSize);//jagged array patternSize × patternSize
+            int[][] arrayToReturn = JaggedArray.CreateJaggedArray<int[][]>(patternSize, patternSize);//jagged array patternSize × patternSize
 
             for (int row = 0; row < patternSize; row++)
             {

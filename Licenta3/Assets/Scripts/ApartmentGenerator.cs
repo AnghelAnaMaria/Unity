@@ -13,7 +13,7 @@ using Unity.Burst.Intrinsics;
 using System.Data;
 
 
-public class SimpleDungeonGenerator : MonoBehaviour
+public class ApartmentGenerator : MonoBehaviour
 {
 
     [SerializeField] private Tilemap roomMap, colliderMap, leftWalls, rightWalls, upWalls, downWalls, rightBoundary, upBoundary, leftBoundary, downBoundary, paths, objects, overObjects;
@@ -26,7 +26,7 @@ public class SimpleDungeonGenerator : MonoBehaviour
 
     [SerializeField] private UnityEvent OnFinishedRoomGenerator;
 
-    [SerializeField] private DungeonData dungeonData;
+    [SerializeField] private ApartmentData dungeonData;
 
     [SerializeField] private ApartmentConfig apartmentConfig;
 
@@ -38,10 +38,10 @@ public class SimpleDungeonGenerator : MonoBehaviour
 
     private void Awake()
     {
-        dungeonData = DungeonData.Instance;
+        dungeonData = ApartmentData.Instance;
         if (dungeonData == null)
         {
-            dungeonData = gameObject.AddComponent<DungeonData>(); // Create if necessary
+            dungeonData = gameObject.AddComponent<ApartmentData>(); // Create if necessary
         }
 
         if (apartmentConfig == null)
@@ -106,6 +106,7 @@ public class SimpleDungeonGenerator : MonoBehaviour
             dungeonData.GenerateDungeonAllTiles();
 
             dungeonData.GenerateDungeonCollider();
+            AddExtraCollider();
             CreateDungeonCollider();
             GenerateWalls();
         }
@@ -333,8 +334,8 @@ public class SimpleDungeonGenerator : MonoBehaviour
             {
                 List<Vector2Int> tiles = room.GetFloorTiles();
                 List<Vector2Int> candidates = new List<Vector2Int>();
-                candidates.AddRange(DungeonData.fourDirections);
-                candidates.AddRange(DungeonData.diagonalDirections);
+                candidates.AddRange(ApartmentData.fourDirections);
+                candidates.AddRange(ApartmentData.diagonalDirections);
                 foreach (var tile in tiles)
                 {
                     foreach (var candidate in candidates)
@@ -975,9 +976,9 @@ public class SimpleDungeonGenerator : MonoBehaviour
 
         foreach (var h in hallTiles)
             foreach (var d in dirs)
-                candidates.Add(h + d);//candidati sunt tiles de langa Hall
+                candidates.Add(h + d);// candidati sunt tiles de langa Hall
 
-        // pentru fiecare candidat, testăm sus+jos sau stânga+dreapta
+        // pentru fiecare candidat, testăm sus+jos sau stanga+dreapta
         foreach (var t in candidates)
         {
             bool up = occupied.Contains(t + Vector2Int.up);
@@ -1169,7 +1170,7 @@ public class SimpleDungeonGenerator : MonoBehaviour
     {
         foreach (var tile in room.GetFloorTiles())
         {
-            foreach (var dir in DungeonData.fourDirections)
+            foreach (var dir in ApartmentData.fourDirections)
             {
                 var neighborPos = tile + dir;
                 if (dungeonData.GetDungeonHallTiles().Contains(neighborPos))
@@ -1186,7 +1187,7 @@ public class SimpleDungeonGenerator : MonoBehaviour
         List<Vector2Int> freePositions = new List<Vector2Int>();
         foreach (var tile in room.GetFloorTiles())
         {
-            foreach (var dir in DungeonData.fourDirections)
+            foreach (var dir in ApartmentData.fourDirections)
             {
                 Vector2Int pos = tile + dir;
                 if (!dungeonData.GetDungeonRoomTiles().Contains(pos) && !dungeonData.GetDungeonHallTiles().Contains(pos))
@@ -1565,6 +1566,7 @@ public class SimpleDungeonGenerator : MonoBehaviour
 
 
                 //Adăugăm closestHall la începutul listei pentru ca la următoarea iterație, closestHall să fie noul Hall de conectat (astfel vom avea un drum conex din aproape in aproape).
+
                 halls.Insert(0, closestHall);
             }
         }
@@ -1867,6 +1869,32 @@ public class SimpleDungeonGenerator : MonoBehaviour
         upBoundary.ClearAllTiles();
         leftBoundary.ClearAllTiles();
         downBoundary.ClearAllTiles();
+    }
+
+    private void AddExtraCollider()
+    {
+        Vector2Int[] dirs = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
+        var candidates = new HashSet<Vector2Int>();
+
+        foreach (var h in dungeonData.GetColliderTiles())
+            foreach (var d in dirs)
+                candidates.Add(h + d);//candidatii sunt tiles de langa collider
+
+        foreach (var tile in candidates)
+        {
+            bool up = dungeonData.GetColliderTiles().Contains(tile + Vector2Int.up);
+            bool down = dungeonData.GetColliderTiles().Contains(tile + Vector2Int.down);
+            bool left = dungeonData.GetColliderTiles().Contains(tile + Vector2Int.left);
+            bool right = dungeonData.GetColliderTiles().Contains(tile + Vector2Int.right);
+
+            if (up && down && left && right)
+            {
+                if (!dungeonData.GetDungeonRoomTiles().Contains(tile) && !dungeonData.GetDungeonHallTiles().Contains(tile))
+                {
+                    dungeonData.AddColliderTiles(tile);
+                }
+            }
+        }
     }
 
     private void CreateDungeonCollider()

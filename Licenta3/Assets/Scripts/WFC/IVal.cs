@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace WaveFunctionCollapse
 {//interfata care ne asigura ca clasele ce o mostenesc au un getter care returneaza valoarea de tip T, au metoda de comparatie Equals si metoda GetHashCode.
-    public interface IValue<T> : IEqualityComparer<IValue<T>>, IEquatable<IValue<T>>
+    public interface IVal<T> : IEqualityComparer<IVal<T>>, IEquatable<IVal<T>>
     {
         T value { get; }
     }

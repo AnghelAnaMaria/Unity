@@ -8,14 +8,14 @@ using UnityEngine;
 //În orice CustomEditor, Unity îţi dă automat o variabilă numită target care:
 //-este instanţa componentului (scriptului) pe care tocmai o editezi în Inspector
 //-are tipul generic UnityEngine.Object
-[CustomEditor(typeof(Test))]//pentru orice GameObject care are atașat scriptul Test
+[CustomEditor(typeof(Final))]//pentru orice GameObject care are atașat scriptul Test
 public class WFCInspector : Editor//în locul inspectorului default vom folosi clasa WFCInspector
 {
     public override void OnInspectorGUI()
     {
         DrawDefaultInspector();//păstrează toate câmpurile vizibile în Inspector așa cum ar fi fără custom editor
 
-        Test myScript = (Test)target;
+        Final myScript = (Final)target;
 
         //Desenează un buton în Inspector cu eticheta “Create tilemap”:
         //Când este apăsat, invocă două metode din scriptul Test: -CreateWFC() –generează matricea de indexi de patterns

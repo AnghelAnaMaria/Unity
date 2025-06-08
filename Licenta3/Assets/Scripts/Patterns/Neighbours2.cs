@@ -6,9 +6,9 @@ using UnityEngine;
 
 namespace WaveFunctionCollapse
 {//Strategia 2: consideram 2 patterns N*N ca fiind vecine daca au (N-1)*N tiles egale
-    public class NeighboursStrategySize2OrMore : IFindNeighbourStrategy
+    public class Neighbours2 : INeighbours
     {
-        public Dictionary<int, PatternNeighbours> FindNeighbours(PatternDataResults patternDataResults)//in PatternDataResults avem matricea de pattern-uri din care salvam pt fiecare pattern care ii sunt vecinii.
+        public Dictionary<int, PatternNeighbours> FindNeighbours(PatternResults patternDataResults)//in PatternDataResults avem matricea de pattern-uri din care salvam pt fiecare pattern care ii sunt vecinii.
         {
             var result = new Dictionary<int, PatternNeighbours>();
 
@@ -25,7 +25,7 @@ namespace WaveFunctionCollapse
 
         private void FindNeighboursInAllDirections(Dictionary<int, PatternNeighbours> result, KeyValuePair<int, PatternData> patternDataToCheck, KeyValuePair<int, PatternData> possibleNeighbourForPattern)
         {
-            foreach (Direction dir in Enum.GetValues(typeof(Direction)))//cautam in toate directiile
+            foreach (Dir dir in Enum.GetValues(typeof(Dir)))//cautam in toate directiile
             {
                 if (patternDataToCheck.Value.CompareGrid(dir, possibleNeighbourForPattern.Value))//cautam ca pattern-urile (subgrilele N*N) sa aiba (N-1)*N casute egale
                 {

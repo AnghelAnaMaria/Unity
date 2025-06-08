@@ -12,25 +12,26 @@ namespace WaveFunctionCollapse
         public HashSet<int> previousPossibilities;
     }
 
-    public class CoreSolver
+    public class SolverManager
     {
         PatternManager patternManager;//rezultatul= grila de int care reprezinta grila finala de Tiles
         OutputGrid outputGrid;//starea curenta a WFC (multimea de pattern-uri inca posibile pt fiecare celula)
-        CoreHelper coreHelper;//evalueaza entropia, genereaza vecinii, detecteaza coliziunile in timpul propagarii
-        PropagationHelper propagationHelper;//logica pt VectorPair
+        HelperManager coreHelper;//evalueaza entropia, genereaza vecinii, detecteaza coliziunile in timpul propagarii
+        Propagation propagationHelper;//logica pt VectorPair
         Dictionary<Vector2Int, HashSet<int>> softBanned;
         private Stack<CollapseStep> lastSteps = new Stack<CollapseStep>();
-        private int maxBacktrackSteps = 5; //se poate modifica
+        private int maxBacktrackSteps;
 
 
         //Metode:
-        public CoreSolver(OutputGrid outputGrid, PatternManager patternManager, Dictionary<Vector2Int, HashSet<int>> softBanned)
+        public SolverManager(OutputGrid outputGrid, PatternManager patternManager, int maxBacktrackSteps, Dictionary<Vector2Int, HashSet<int>> softBanned)
         {
             this.outputGrid = outputGrid;
             this.patternManager = patternManager;
-            this.coreHelper = new CoreHelper(this.patternManager);
+            this.maxBacktrackSteps = maxBacktrackSteps;
+            this.coreHelper = new HelperManager(this.patternManager);
             this.softBanned = softBanned;
-            this.propagationHelper = new PropagationHelper(this.outputGrid, this.coreHelper);
+            this.propagationHelper = new Propagation(this.outputGrid, this.coreHelper);
         }
 
         public void Propagate()
@@ -38,7 +39,7 @@ namespace WaveFunctionCollapse
             //Cât timp mai sunt perechi de procesat in coada
             while (propagationHelper.PairsToPropagate.Count > 0)
             {
-                VectorPair propagatePair = propagationHelper.PairsToPropagate.Dequeue();//luam din coada
+                CellPair propagatePair = propagationHelper.PairsToPropagate.Dequeue();//luam din coada
                 if (propagationHelper.CheckIfPairShouldBeProcessed(propagatePair))//daca celula tinta nu e in afara gridului si nu ne intoarcem inapoi la celula baza
                 {
                     ProcessCell(propagatePair);
@@ -56,7 +57,7 @@ namespace WaveFunctionCollapse
             }
         }
 
-        private void ProcessCell(VectorPair propagatePair)
+        private void ProcessCell(CellPair propagatePair)
         {
             if (outputGrid.CheckIfCellIsCollapsed(propagatePair.CellToPropagatePosition))//daca celula tinta e colapsata 
             {
@@ -68,7 +69,7 @@ namespace WaveFunctionCollapse
             }
         }
 
-        private void PropagateNeighbour(VectorPair propagatePair)//pt celula tinta; patterns compatibile gasite sunt salvate in dictionarul din OutputGrid
+        private void PropagateNeighbour(CellPair propagatePair)//pt celula tinta; patterns compatibile gasite sunt salvate in dictionarul din OutputGrid
         {
             Debug.Log("Am apelat metoda PropagateNeighbour");
             HashSet<int> possibleValuesAtNeighbour = outputGrid.GetPossibleValuesForPosition(propagatePair.CellToPropagatePosition);//patterns care pot sta in celula tinta
@@ -82,7 +83,7 @@ namespace WaveFunctionCollapse
             propagationHelper.AnalyzePropagationResults(propagatePair, startCount, newPossiblePatternCount);
         }
 
-        private void RemoveImpossibleNeighbours(VectorPair propagatePair, HashSet<int> possibleValuesAtNeighbour)//pt celula baza
+        private void RemoveImpossibleNeighbours(CellPair propagatePair, HashSet<int> possibleValuesAtNeighbour)//pt celula baza
         {
             HashSet<int> possibleIndices = new HashSet<int>();
 
@@ -92,7 +93,7 @@ namespace WaveFunctionCollapse
                 possibleIndices.UnionWith(possibleNeighboursForBase);
             }
 
-            possibleValuesAtNeighbour.IntersectWith(possibleIndices);//adica scapam de patterns vecine incompatibile
+            possibleValuesAtNeighbour.IntersectWith(possibleIndices);//adica scapam de patterns incompatibile
         }
 
         public Vector2Int GetLowestEntropyCell()
@@ -211,15 +212,15 @@ namespace WaveFunctionCollapse
         private int GetUncollapsedNeighborCount(Vector2Int cell)
         {
             int count = 0;
-            foreach (Direction dir in System.Enum.GetValues(typeof(Direction)))
+            foreach (Dir dir in System.Enum.GetValues(typeof(Dir)))
             {
                 Vector2Int neighbor = cell;
                 switch (dir)
                 {
-                    case Direction.Up: neighbor += Vector2Int.up; break;
-                    case Direction.Down: neighbor += Vector2Int.down; break;
-                    case Direction.Left: neighbor += Vector2Int.left; break;
-                    case Direction.Right: neighbor += Vector2Int.right; break;
+                    case Dir.Up: neighbor += Vector2Int.up; break;
+                    case Dir.Down: neighbor += Vector2Int.down; break;
+                    case Dir.Left: neighbor += Vector2Int.left; break;
+                    case Dir.Right: neighbor += Vector2Int.right; break;
                 }
                 if (outputGrid.CheckIfValidCoords(neighbor) && !outputGrid.CheckIfCellIsCollapsed(neighbor))
                 {
@@ -259,7 +260,7 @@ namespace WaveFunctionCollapse
 
                 // 2. Add to propagation queue (so the constraints are re-propagated)
                 // Assuming you can access the queue here or via PropagationHelper:
-                propagationHelper.PairsToPropagate.Enqueue(new VectorPair(step.cell, step.cell, Direction.Up, step.cell));
+                propagationHelper.PairsToPropagate.Enqueue(new CellPair(step.cell, step.cell, Dir.Up, step.cell));
 
                 // 3. Recalculate entropy (add back to low entropy set)
                 propagationHelper.AddToLowEntropySet(step.cell);

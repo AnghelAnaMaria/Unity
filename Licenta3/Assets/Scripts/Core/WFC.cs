@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace WaveFunctionCollapse
 {
-    public class WFCCore
+    public class WFC
     {
         private OutputGrid outputGrid;//grid final
         private PatternManager patternManager;//patterns, vecini pt patterns, strategia
@@ -14,17 +14,19 @@ namespace WaveFunctionCollapse
         private int outputWidth;
         private int outputHeight;
         private Dictionary<Vector2Int, HashSet<int>> initialRestrictions;
+        int maxBacktrackSteps;
 
 
 
         public OutputGrid OutputGrid => outputGrid;
-        public WFCCore(int outputWidth, int outputHeight, int maxIterations, PatternManager patternManager, Dictionary<Vector2Int, HashSet<int>> softBanned = null, Dictionary<Vector2Int, HashSet<int>> initialRestrictions = null)
+        public WFC(int outputWidth, int outputHeight, int maxIterations, PatternManager patternManager, int maxBacktrackSteps, Dictionary<Vector2Int, HashSet<int>> softBanned = null, Dictionary<Vector2Int, HashSet<int>> initialRestrictions = null)
         {
             this.outputWidth = outputWidth;
             this.outputHeight = outputHeight;
             this.outputGrid = new OutputGrid(outputWidth, outputHeight, patternManager.GetNumberOfPatterns());
             this.maxIterations = maxIterations;
             this.patternManager = patternManager;
+            this.maxBacktrackSteps = maxBacktrackSteps;
             this.softBanned = softBanned;
             this.initialRestrictions = initialRestrictions;
             ApplyInitialRestrictions();
@@ -42,11 +44,11 @@ namespace WaveFunctionCollapse
         public int[][] CreateOutputGrid()
         {
             int iteration = 0;
-            CoreSolver coreSolver = null;
+            SolverManager coreSolver = null;
             while (iteration < this.maxIterations)
             {
                 if (coreSolver == null)
-                    coreSolver = new CoreSolver(outputGrid, patternManager, softBanned);
+                    coreSolver = new SolverManager(outputGrid, patternManager, maxBacktrackSteps, softBanned);
                 int innerIteration = 100;
 
                 while (!coreSolver.CheckForConflicts() && !coreSolver.CheckIfSolved())//cat timp nu avem coliziuni(conflicte) si cat timp nu s-a rezolvat grila
@@ -85,7 +87,7 @@ namespace WaveFunctionCollapse
                         iteration++;
                         outputGrid.ResetAllPossibilities();
                         // ApplyInitialRestrictions();
-                        coreSolver = new CoreSolver(this.outputGrid, this.patternManager, softBanned);
+                        coreSolver = new SolverManager(this.outputGrid, this.patternManager, this.maxBacktrackSteps, softBanned);
                     }
                 }
                 else

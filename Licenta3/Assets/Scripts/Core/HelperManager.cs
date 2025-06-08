@@ -6,14 +6,14 @@ using UnityEngine;
 
 namespace WaveFunctionCollapse
 {
-    public class CoreHelper
+    public class HelperManager
     {
         float totalFrequency = 0;
         float totalFrequencyLog = 0;
         PatternManager patternManager;//rezultatul= grila de int care reprezinta grila finala de Tiles
 
         //Metode:
-        public CoreHelper(PatternManager patternManager)
+        public HelperManager(PatternManager patternManager)
         {
             this.patternManager = patternManager;
         }
@@ -61,19 +61,19 @@ namespace WaveFunctionCollapse
             return valueFrequencies;//returnam lista de frecvente (frecventele pt toate pattern-urile)
         }
 
-        public List<VectorPair> Create4DirectionNeighbours(Vector2Int cellCoordinates, Vector2Int previousCell)//retinem celula din Tilemap de unde pornim si vecinii celulei pt cele 4 directii
+        public List<CellPair> Create4DirectionNeighbours(Vector2Int cellCoordinates, Vector2Int previousCell)//retinem celula din Tilemap de unde pornim si vecinii celulei pt cele 4 directii
         {
-            List<VectorPair> list = new List<VectorPair>(){
-                new VectorPair(cellCoordinates, cellCoordinates + new Vector2Int(1,  0), Direction.Right, previousCell),
-                new VectorPair(cellCoordinates, cellCoordinates + new Vector2Int(-1, 0), Direction.Left,  previousCell),
-                new VectorPair(cellCoordinates, cellCoordinates + new Vector2Int(0,  1), Direction.Up,    previousCell),
-                new VectorPair(cellCoordinates, cellCoordinates + new Vector2Int(0, -1), Direction.Down,  previousCell),
+            List<CellPair> list = new List<CellPair>(){
+                new CellPair(cellCoordinates, cellCoordinates + new Vector2Int(1,  0), Dir.Right, previousCell),
+                new CellPair(cellCoordinates, cellCoordinates + new Vector2Int(-1, 0), Dir.Left,  previousCell),
+                new CellPair(cellCoordinates, cellCoordinates + new Vector2Int(0,  1), Dir.Up,    previousCell),
+                new CellPair(cellCoordinates, cellCoordinates + new Vector2Int(0, -1), Dir.Down,  previousCell),
             };
 
             return list;
         }
 
-        public List<VectorPair> Create4DirectionNeighbours(Vector2Int cellCoordinate)//pentru apelul inițial (unde nu există celulă anterioară)
+        public List<CellPair> Create4DirectionNeighbours(Vector2Int cellCoordinate)//pentru apelul inițial (unde nu există celulă anterioară)
         {
             return Create4DirectionNeighbours(cellCoordinate, cellCoordinate);
         }
@@ -95,7 +95,7 @@ namespace WaveFunctionCollapse
             return sum;
         }
 
-        public List<VectorPair> ReturnUncollapsedNeighbours(VectorPair pairToCheck, OutputGrid outputGrid)//returnam vecinii necolapsati ai unei celule din grid (ai celulei tinta)
+        public List<CellPair> ReturnUncollapsedNeighbours(CellPair pairToCheck, OutputGrid outputGrid)//returnam vecinii necolapsati ai unei celule din grid (ai celulei tinta)
         {
             return Create4DirectionNeighbours(pairToCheck.CellToPropagatePosition, pairToCheck.BaseCellPosition)
                 .Where(x => outputGrid.CheckIfValidCoords(x.CellToPropagatePosition) && outputGrid.CheckIfCellIsCollapsed(x.CellToPropagatePosition) == false)//x aici nu e coordonata X, ci un VectorPair, deci un (x,y)

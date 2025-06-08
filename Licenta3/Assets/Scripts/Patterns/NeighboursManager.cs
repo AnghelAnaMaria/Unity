@@ -9,13 +9,13 @@ namespace WaveFunctionCollapse
 {//Clasa care alege o strategie din cele 2
  //Pas 1: prima oara (in WFC) cream obiectul NeighbourStrategyFactory deci apelam LoadTypesIFindNeighbourStrategy() -> avem in strategies ca Types: NeighbourStrategySize1Default si NeighboursStrategySize2OrMore (adica 2 strategii posibile)
  //Pas 2 : dupa (in WFC workflow) apelam CreateInstance(sring conventie) ca sa cream o instanta pt un obiect (ori de Type NeighbourStrategySize1Default ori de Type NeighboursStrategySize2OrMore) -> ramanem cu un singur Type (adica o singura strategie la rulare)
-    public class NeighbourStrategyFactory
+    public class NeighboursManager
     {
         private Dictionary<string, Type> strategies;//un dicționar (nume clasa, Type clasa)
 
 
         //Pas 1:
-        public NeighbourStrategyFactory()
+        public NeighboursManager()
         {
             LoadTypesIFindNeighbourStrategy();
         }
@@ -30,7 +30,7 @@ namespace WaveFunctionCollapse
             foreach (var type in typesInThisAssembly)
             {
                 //dacă tipul implementează IFindNeighbourStrategy(adica daca avem NeighbourStrategySize1Default sau NeighboursStrategySize2OrMore)
-                if (type.GetInterface(typeof(IFindNeighbourStrategy).ToString()) != null)
+                if (type.GetInterface(typeof(INeighbours).ToString()) != null)
                 {
                     //îl înregistrăm sub cheia numelui clasei, în lowercase
                     strategies.Add(type.Name.ToLower(), type);
@@ -39,14 +39,14 @@ namespace WaveFunctionCollapse
         }
 
         //Pas 2:
-        internal IFindNeighbourStrategy CreateInstance(string nameOfStrategy)//nameOfStrategy= numele cu care apelez eu in WFC Algorythm
+        internal INeighbours CreateInstance(string nameOfStrategy)//nameOfStrategy= numele cu care apelez eu in WFC Algorythm
         {
             Type typeForStrategy = GetTypeToCreate(nameOfStrategy);//Type pt numele nameOfStrategy
 
             if (typeForStrategy == null)
                 typeForStrategy = GetTypeToCreate("more");//adica luam Type=NeighboursStrategySize2OrMore
 
-            return Activator.CreateInstance(typeForStrategy) as IFindNeighbourStrategy;//Creează dinamic un obiect al clasei NeighbourStrategySize1Default sau NeighboursStrategySize2OrMore (ADICA O STRATEGIE)
+            return Activator.CreateInstance(typeForStrategy) as INeighbours;//Creează dinamic un obiect al clasei NeighbourStrategySize1Default sau NeighboursStrategySize2OrMore (ADICA O STRATEGIE)
         }
 
         private Type GetTypeToCreate(string nameOfStrategy)//nameOfStrategy= numele cu care apelez eu in WFC Algorythm

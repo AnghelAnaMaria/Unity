@@ -3,7 +3,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
-public static class HashCodeCalculator
+public static class Hash
 {
   /// <summary>
   /// Flattens a 2D int grid into bytes, hashes it with MD5, and returns a hex string.

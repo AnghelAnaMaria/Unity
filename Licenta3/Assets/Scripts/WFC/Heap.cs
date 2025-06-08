@@ -8,7 +8,7 @@ namespace WaveFunctionCollapse
     /// A simple binary min-heap / priority queue.  
     /// </summary>
     /// <typeparam name="T">Type of elements. Use Comparison&lt;T&gt; or IComparer&lt;T&gt; to define priority.</typeparam>
-    public class MinHeap<T>
+    public class Heap<T>
     {
         private readonly List<T> _data;
         private readonly Comparison<T> _comparer;
@@ -20,7 +20,7 @@ namespace WaveFunctionCollapse
         /// Comparison that returns &lt;0 if x has higher priority than y.
         /// </param>
         /// <param name="initialCapacity">Optional initial capacity to avoid resizing.</param>
-        public MinHeap(Comparison<T> comparer, int initialCapacity = 0)
+        public Heap(Comparison<T> comparer, int initialCapacity = 0)
         {
             if (comparer == null) throw new ArgumentNullException(nameof(comparer));
             _comparer = comparer;

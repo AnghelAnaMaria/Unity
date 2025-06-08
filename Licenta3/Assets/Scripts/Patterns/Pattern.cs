@@ -41,7 +41,7 @@ namespace WaveFunctionCollapse
             return value.Equals(GetGridValue(x, y));
         }
 
-        internal bool ComparePatternToAnotherPattern(Direction dir, Pattern pattern)
+        internal bool ComparePatternToAnotherPattern(Dir dir, Pattern pattern)
         {
             int[][] myGrid = GetGridValuesInDirection(dir);
             int[][] otherGrid = pattern.GetGridValuesInDirection(dir.GetOppositeDirectionTo());
@@ -60,28 +60,28 @@ namespace WaveFunctionCollapse
             return true;
         }
 
-        private int[][] GetGridValuesInDirection(Direction dir)
+        private int[][] GetGridValuesInDirection(Dir dir)
         {
             int[][] gridPartToCompare;
             switch (dir)
             {
-                case Direction.Up://extrage marginea pattern-ului curent pe direcţia „sus” pentru a o compara cu marginea „jos” a unui alt pattern
-                    gridPartToCompare = MyCollectionExtension.CreateJaggedArray<int[][]>(grid.Length - 1, grid.Length);
+                case Dir.Up://extrage marginea pattern-ului curent pe direcţia „sus” pentru a o compara cu marginea „jos” a unui alt pattern
+                    gridPartToCompare = JaggedArray.CreateJaggedArray<int[][]>(grid.Length - 1, grid.Length);
                     CreatePartOfGrid(0, grid.Length, 1, grid.Length, gridPartToCompare);
                     break;
 
-                case Direction.Down:
-                    gridPartToCompare = MyCollectionExtension.CreateJaggedArray<int[][]>(grid.Length - 1, grid.Length);
+                case Dir.Down:
+                    gridPartToCompare = JaggedArray.CreateJaggedArray<int[][]>(grid.Length - 1, grid.Length);
                     CreatePartOfGrid(0, grid.Length, 0, grid.Length - 1, gridPartToCompare);
                     break;
 
-                case Direction.Left:
-                    gridPartToCompare = MyCollectionExtension.CreateJaggedArray<int[][]>(grid.Length, grid.Length - 1);
+                case Dir.Left:
+                    gridPartToCompare = JaggedArray.CreateJaggedArray<int[][]>(grid.Length, grid.Length - 1);
                     CreatePartOfGrid(0, grid.Length - 1, 0, grid.Length, gridPartToCompare);
                     break;
 
-                case Direction.Right:
-                    gridPartToCompare = MyCollectionExtension.CreateJaggedArray<int[][]>(grid.Length, grid.Length - 1);
+                case Dir.Right:
+                    gridPartToCompare = JaggedArray.CreateJaggedArray<int[][]>(grid.Length, grid.Length - 1);
                     CreatePartOfGrid(1, grid.Length, 0, grid.Length, gridPartToCompare);
                     break;
 

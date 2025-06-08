@@ -20,14 +20,14 @@ public class PriorityQueue<TElement, TPriority> where TPriority : IComparable<TP
 
         var result = elements[0].element;//Salvează elementul din vârf ca rezultat
         elements[0] = elements[elements.Count - 1];//Pune ultimul element din listă în poziția 0
-        elements.RemoveAt(elements.Count - 1);//Scoate ultimul element din listă
+        elements.RemoveAt(elements.Count - 1);//Scoate ultimul element din listă (acum il avem pe pozitia 0)
         HeapifyDown(0);//reordoneaza heapul
         return result;
     }
 
     private void HeapifyUp(int index)
     {
-        while (index > 0)
+        while (index > 0)//verific daca nu e deja la radacina
         {
             int parent = (index - 1) / 2;
             if (elements[index].priority.CompareTo(elements[parent].priority) < 0)
@@ -39,15 +39,15 @@ public class PriorityQueue<TElement, TPriority> where TPriority : IComparable<TP
         }
     }
 
-    private void HeapifyDown(int index)
+    private void HeapifyDown(int index)//reordoneaza heap-ul
     {
         int lastIndex = elements.Count - 1;
 
         while (true)
         {
-            int left = 2 * index + 1;
-            int right = 2 * index + 2;
-            int smallest = index;
+            int left = 2 * index + 1;//copii pt radacina
+            int right = 2 * index + 2;//copii pt radacina
+            int smallest = index;//smallest= 0 pt moment
 
             if (left <= lastIndex && elements[left].priority.CompareTo(elements[smallest].priority) < 0)
                 smallest = left;

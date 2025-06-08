@@ -8,18 +8,18 @@ using Unity.VisualScripting;
 
 namespace WaveFunctionCollapse
 {
-    public class PropagationHelper
+    public class Propagation
     {
         private OutputGrid outputGrid;//starea curenta a WFC (multimea de pattern-uri inca posibile pt fiecare celula)
-        private CoreHelper coreHelper;//evalueaza entropia, genereaza vecinii, detecteaza coliziunile in timpul propagarii
+        private HelperManager coreHelper;//evalueaza entropia, genereaza vecinii, detecteaza coliziunile in timpul propagarii
         private bool cellWithNoSolutionPresent;//devine true la coliziune (o celulă rămâne fără niciun pattern posibil sau coliziune imediată)
         private SortedSet<LowEntropyCell> lowEntropySet = new SortedSet<LowEntropyCell>();//ca sa extragem celula cu cea mai mica entropie
-        private Queue<VectorPair> pairsToPropagate = new Queue<VectorPair>();//coada de VectorPair pt care celula de baza si-a restrans domeniul de patterns
+        private Queue<CellPair> pairsToPropagate = new Queue<CellPair>();//coada de VectorPair pt care celula de baza si-a restrans domeniul de patterns
 
 
         //Getters:
         public SortedSet<LowEntropyCell> LowEntropySet { get => lowEntropySet; }
-        public Queue<VectorPair> PairsToPropagate { get => pairsToPropagate; }
+        public Queue<CellPair> PairsToPropagate { get => pairsToPropagate; }
 
         //Setters:
         public SortedSet<LowEntropyCell> SetLowEntropySet
@@ -27,28 +27,28 @@ namespace WaveFunctionCollapse
             get => lowEntropySet;
             set => lowEntropySet = value;
         }
-        public Queue<VectorPair> SetPairsToPropagate
+        public Queue<CellPair> SetPairsToPropagate
         {
             get => pairsToPropagate;
             set => pairsToPropagate = value;
         }
 
         //Constructor:
-        public PropagationHelper(OutputGrid outputGrid, CoreHelper coreHelper)
+        public Propagation(OutputGrid outputGrid, HelperManager coreHelper)
         {
             this.outputGrid = outputGrid ?? throw new System.ArgumentNullException("outputGrid");
             this.coreHelper = coreHelper ?? throw new System.ArgumentNullException("coreHelper");
             this.lowEntropySet = new SortedSet<LowEntropyCell>();
-            this.pairsToPropagate = new Queue<VectorPair>();
+            this.pairsToPropagate = new Queue<CellPair>();
         }
 
-        public bool CheckIfPairShouldBeProcessed(VectorPair propagationPair)
+        public bool CheckIfPairShouldBeProcessed(CellPair propagationPair)
         {
             return outputGrid.CheckIfValidCoords(propagationPair.CellToPropagatePosition)
                 && propagationPair.AreWeCheckingPreviousCellAgain() == false;
         }
 
-        public void AnalyzePropagationResults(VectorPair propagatePair, int startCount, int newPossiblePatternCount)
+        public void AnalyzePropagationResults(CellPair propagatePair, int startCount, int newPossiblePatternCount)
         {//propagatePair= obiect care descrie propagarea de la o celula de baza la o celula tinta
          //startCount= nr paterns inainte de eliminare pt celula tinta;    newPossiblePatternCount= nr patterns dupa eliminare pt celula tinta
             if (newPossiblePatternCount > 1 && startCount > newPossiblePatternCount)//daca am eliminat din patterns posibile pt celula tinta (domeniu restrans, dar nu colapsat)
@@ -69,8 +69,8 @@ namespace WaveFunctionCollapse
 
         public void AddNewPairsToPropagateQueue(Vector2Int cellToPropagatePosition, Vector2Int baseCellPosition)
         {
-            List<VectorPair> list = coreHelper.Create4DirectionNeighbours(cellToPropagatePosition, baseCellPosition);//vecinii pt cellToPropagatePosition
-            foreach (VectorPair item in list)
+            List<CellPair> list = coreHelper.Create4DirectionNeighbours(cellToPropagatePosition, baseCellPosition);//vecinii pt cellToPropagatePosition
+            foreach (CellPair item in list)
             {
                 pairsToPropagate.Enqueue(item);
             }
@@ -105,10 +105,10 @@ namespace WaveFunctionCollapse
             }
         }
 
-        internal void EnqueueUncollapseNeighbours(VectorPair propagatePair)
+        internal void EnqueueUncollapseNeighbours(CellPair propagatePair)
         {
-            List<VectorPair> uncollapsedNeighbours = coreHelper.ReturnUncollapsedNeighbours(propagatePair, outputGrid);//vecinii necolapsati pt celula tinta
-            foreach (VectorPair uncollapsed in uncollapsedNeighbours)//bagam vecinii necolapsati in coada
+            List<CellPair> uncollapsedNeighbours = coreHelper.ReturnUncollapsedNeighbours(propagatePair, outputGrid);//vecinii necolapsati pt celula tinta
+            foreach (CellPair uncollapsed in uncollapsedNeighbours)//bagam vecinii necolapsati in coada
             {
                 pairsToPropagate.Enqueue(uncollapsed);
             }

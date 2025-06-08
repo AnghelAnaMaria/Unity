@@ -31,7 +31,7 @@ namespace WaveFunctionCollapse
             frequencyRelativeLog2 = Mathf.Log(frequencyRelative, 2);
         }
 
-        public bool CompareGrid(Direction dir, PatternData data)
+        public bool CompareGrid(Dir dir, PatternData data)
         {
             return pattern.ComparePatternToAnotherPattern(dir, data.Pattern);
         }

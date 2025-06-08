@@ -5,9 +5,9 @@ using System;
 using System.Linq;
 using Unity.VisualScripting;
 
-public class DungeonData : MonoBehaviour
+public class ApartmentData : MonoBehaviour
 {
-    public static DungeonData Instance { get; private set; }//Singleton
+    public static ApartmentData Instance { get; private set; }//Singleton
     private List<Room> rooms = new List<Room>();
 
     private List<Hall> halls = new List<Hall>();

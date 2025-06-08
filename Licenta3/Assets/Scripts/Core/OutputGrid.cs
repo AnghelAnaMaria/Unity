@@ -116,7 +116,7 @@ namespace WaveFunctionCollapse
 
         internal bool CheckIfValidCoords(Vector2Int position)
         {
-            return MyCollectionExtension.ValidateCoordinates(position.x, position.y, width, height);
+            return JaggedArray.ValidateCoordinates(position.x, position.y, width, height);
         }
 
         public Vector2Int GetRandomCellCoords()
@@ -152,10 +152,10 @@ namespace WaveFunctionCollapse
 
         public int[][] GetSolvedOutputGrid()//returneaza matricea finala de indici de patterns (toate celulele sunt colapsate)
         {
-            int[][] returnGrid = MyCollectionExtension.CreateJaggedArray<int[][]>(height, width);
+            int[][] returnGrid = JaggedArray.CreateJaggedArray<int[][]>(height, width);
 
             if (!CheckIfGridIsSolved())
-                return MyCollectionExtension.CreateJaggedArray<int[][]>(0, 0);
+                return JaggedArray.CreateJaggedArray<int[][]>(0, 0);
 
             for (int row = 0; row < height; row++)
             {

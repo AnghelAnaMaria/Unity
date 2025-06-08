@@ -11,25 +11,25 @@ namespace WaveFunctionCollapse
     public class TilemapOutput : IOutputCreator<Tilemap>
     {
         private Tilemap outputImage;
-        private ValuesManager<TileBase> valueManager;//matricea de int (int[][]) de input, fiecare int reprezentand un Tilebase
+        private InputManager<UnityEngine.Tilemaps.TileBase> valueManager;//matricea de int (int[][]) de input, fiecare int reprezentand un Tilebase
         public Tilemap OutputImage => outputImage;
 
-        public TilemapOutput(ValuesManager<TileBase> valueManager, Tilemap outputImage)
+        public TilemapOutput(InputManager<UnityEngine.Tilemaps.TileBase> valueManager, Tilemap outputImage)
         {
             this.outputImage = outputImage;
             this.valueManager = valueManager;
         }
 
-        public void CreateOutput(PatternManager manager, int[][] outputValues, int width, int height)//outputValues= gridul de indici pattern, returnat de WFC. Dam gridul la PatternManager ca sa il convertim la indici de Tilebase
+        public void CreateOutput(PatternManager manager, int[][] patternIndices, int width, int height)//patternIndices= gridul de indici pattern, returnat de WFC. Dam gridul la PatternManager ca sa il convertim la indici de Tilebase
         {
-            if (outputValues.Length == 0)
+            if (patternIndices.Length == 0)
             {
                 return;
             }
             this.outputImage.ClearAllTiles();//stergem ce e desenat in scena
 
             int[][] valueGrid;
-            valueGrid = manager.ConvertPatternsToValues<TileBase>(outputValues);//convertim rezultatul WFC la matrice de indexi ce reprezinta Tilebase
+            valueGrid = manager.ConvertPatternsToValues<UnityEngine.Tilemaps.TileBase>(patternIndices);//convertim rezultatul WFC la matrice de indexi ce reprezinta Tilebase
 
             int rows = valueGrid.Length;
             int cols = valueGrid[0].Length;
@@ -39,14 +39,14 @@ namespace WaveFunctionCollapse
                 for (int col = 0; col < cols; col++)
                 {
                     int valueIndex = valueGrid[row][col];//luam indicele corespunzator Tilebase-ului
-                    TileBase tile = (TileBase)valueManager.GetValueFromIndex(valueIndex).value;
+                    UnityEngine.Tilemaps.TileBase tile = (UnityEngine.Tilemaps.TileBase)valueManager.GetValueFromIndex(valueIndex).value;
                     outputImage.SetTile(new Vector3Int(col, row, 0), tile);
                 }
             }
 
         }
 
-        public void CreatePartialOutput(PatternManager manager, OutputGrid outputGrid, TileBase errorTile = null, TileBase pendingTile = null)
+        public void CreatePartialOutput(PatternManager manager, OutputGrid outputGrid, UnityEngine.Tilemaps.TileBase errorTile = null, UnityEngine.Tilemaps.TileBase pendingTile = null)
         {
             outputImage.ClearAllTiles();
 
@@ -55,7 +55,7 @@ namespace WaveFunctionCollapse
                 for (int col = 0; col < outputGrid.width; col++)
                 {
                     var possiblePatterns = outputGrid.GetPossibleValuesForPosition(new Vector2Int(col, row));
-                    TileBase tileToDraw = null;
+                    UnityEngine.Tilemaps.TileBase tileToDraw = null;
 
                     if (possiblePatterns.Count == 1)
                     {
@@ -63,7 +63,7 @@ namespace WaveFunctionCollapse
                         // Pick the "anchor" value for this pattern (usually [0,0] or similar)
                         var pattern = manager.GetPatternDataFromIndex(patternIndex).Pattern;
                         int valueIndex = pattern.GetGridValue(0, 0);
-                        tileToDraw = (TileBase)valueManager.GetValueFromIndex(valueIndex).value;
+                        tileToDraw = (UnityEngine.Tilemaps.TileBase)valueManager.GetValueFromIndex(valueIndex).value;
                     }
                     else if (possiblePatterns.Count == 0)
                     {

@@ -9,7 +9,7 @@ public static class AStarPathfinder
     {
         public Vector2Int position;
         public Vector2Int direction;  //direcția cu care am intrat aici; pentru start poate fi zero
-        public int segmentLength;     //câte tile-uri am parcurs consecutiv în aceeași direcție
+        public int segmentLength;     //câte tile-uri am parcurs consecutiv în aceeași direcție (ca sa penalizam schimbarea de directie)
 
         public AStarNodeState(Vector2Int pos, Vector2Int dir, int segLen)
         {
@@ -120,69 +120,6 @@ public static class AStarPathfinder
     }
 
 
-
-    /*
-        public static List<Vector2Int> AStarPathfinding(Vector2Int start, Vector2Int goal)
-        {
-            Debug.Log("AStarPathfinding pornit de la " + start + " la " + goal);
-            if (start == goal)
-                return new List<Vector2Int> { start };
-
-            var openSet = new PriorityQueue<Vector2Int, int>();
-            var cameFrom = new Dictionary<Vector2Int, Vector2Int>();
-            var gScore = new Dictionary<Vector2Int, int>();
-            var fScore = new Dictionary<Vector2Int, int>();
-
-            var cameDir = new Dictionary<Vector2Int, Vector2Int>(); //Dicționar pentru a ține direcția cu care am ajuns la un nod
-
-            gScore[start] = 0;
-            fScore[start] = ManhattanDistance(start, goal);
-            openSet.Enqueue(start, fScore[start]);
-
-
-            cameDir[start] = Vector2Int.zero; //Nodul de start nu are direcție asociată
-            while (openSet.Count > 0)
-            {
-                Vector2Int current = openSet.Dequeue();
-
-                if (current == goal)
-                {
-                    return ReconstructPath(cameFrom, current);
-                }
-
-                foreach (var neighbor in GetNeighbors(current))
-                {
-                    //Calculează direcția candidat: de la nodul curent spre neighbor
-                    Vector2Int candidateDir = neighbor - current;
-
-                    //Dacă nu avem o direcție pentru nodul curent (de la start), nu penalizăm
-                    int penalty = 0;
-                    if (cameDir.ContainsKey(current) && cameDir[current] != Vector2Int.zero &&
-                        !candidateDir.Equals(cameDir[current]))
-                    {
-                        penalty = TURN_PENALTY;
-                    }
-
-                    int moveCost = GetTileCost(neighbor);
-                    int tentativeGScore = gScore[current] + moveCost + penalty;
-
-                    if (!gScore.ContainsKey(neighbor) || tentativeGScore < gScore[neighbor])
-                    {
-                        cameFrom[neighbor] = current;
-                        gScore[neighbor] = tentativeGScore;
-                        fScore[neighbor] = tentativeGScore + ManhattanDistance(neighbor, goal);
-                        openSet.Enqueue(neighbor, fScore[neighbor]);
-
-                        // Stocăm direcția care a condus spre acest vecin
-                        cameDir[neighbor] = candidateDir;
-                    }
-                }
-            }
-
-            Debug.LogWarning("AStar: Nu s-a găsit niciun drum!");
-            return new List<Vector2Int>();
-        }
-    */
     public static List<Vector2Int> GetNeighbors(Vector2Int node)
     {
         List<Vector2Int> neighbors = new List<Vector2Int>();
@@ -207,7 +144,7 @@ public static class AStarPathfinder
     public static bool IsWalkable(Vector2Int pos)
     {
         //Assuming DungeonData.Instance returns your singleton instance.
-        DungeonData dungeonData = DungeonData.Instance;
+        ApartmentData dungeonData = ApartmentData.Instance;
         return !dungeonData.GetDungeonRoomTiles().Contains(pos);
     }
 
@@ -232,7 +169,7 @@ public static class AStarPathfinder
 
     public static int GetTileCost(Vector2Int pos)
     {
-        DungeonData dungeonData = DungeonData.Instance;
+        ApartmentData dungeonData = ApartmentData.Instance;
         Vector2Int[] directions = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
 
         foreach (var d in directions)

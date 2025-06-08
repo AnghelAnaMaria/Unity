@@ -6,28 +6,28 @@ using WaveFunctionCollapse;
 
 namespace WaveFunctionCollapse
 {//clasa care imi defineste un Tile pt WFC
-    public class TileBaseValue : IValue<TileBase>
+    public class TileBaseVal : IVal<UnityEngine.Tilemaps.TileBase>
     {
-        private TileBase tileBase;//referinta care TileBase din Unity (din scena)
+        private UnityEngine.Tilemaps.TileBase tileBase;//referinta care TileBase din Unity (din scena)
 
-        public TileBaseValue(TileBase tileBase)
+        public TileBaseVal(UnityEngine.Tilemaps.TileBase tileBase)
         {
             this.tileBase = tileBase;
         }
 
-        public TileBase value => this.tileBase;
+        public UnityEngine.Tilemaps.TileBase value => this.tileBase;
 
-        public bool Equals(IValue<TileBase> x, IValue<TileBase> y)
+        public bool Equals(IVal<UnityEngine.Tilemaps.TileBase> x, IVal<UnityEngine.Tilemaps.TileBase> y)
         {
             return x == y;
         }
 
-        public int GetHashCode(IValue<TileBase> obj)
+        public int GetHashCode(IVal<UnityEngine.Tilemaps.TileBase> obj)
         {
             return obj.GetHashCode();
         }
 
-        public bool Equals(IValue<TileBase> other)
+        public bool Equals(IVal<UnityEngine.Tilemaps.TileBase> other)
         {
             return other.value == this.value;
         }

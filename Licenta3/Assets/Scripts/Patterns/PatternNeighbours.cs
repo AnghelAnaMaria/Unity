@@ -6,10 +6,10 @@ namespace WaveFunctionCollapse
 {
     public class PatternNeighbours
     {//Clasa PatternNeighbours este folosită pentru a păstra și gestiona, pentru fiecare pattern (sub-grilă N×N), lista de pattern-uri care îi pot fi alăturate pe fiecare dintre cele patru direcții.
-        public Dictionary<Direction, HashSet<int>> directionPatternNeighbourDictionary = new Dictionary<Direction, HashSet<int>>();//Pentru fiecare direcție, setul de indici de pattern-uri care pot sta acolo
+        public Dictionary<Dir, HashSet<int>> directionPatternNeighbourDictionary = new Dictionary<Dir, HashSet<int>>();//Pentru fiecare direcție, setul de indici de pattern-uri care pot sta acolo
 
         //Metode:
-        public void AddPatternToDictionary(Direction dir, int patternIndex)//Adaugă un singur neighbour (patternIndex) pentru o direcție anume
+        public void AddPatternToDictionary(Dir dir, int patternIndex)//Adaugă un singur neighbour (patternIndex) pentru o direcție anume
         {
             if (directionPatternNeighbourDictionary.ContainsKey(dir))
             {
@@ -22,7 +22,7 @@ namespace WaveFunctionCollapse
         }
 
         // Întoarce setul de neighbours pentru direcția dată (sau un set gol dacă n-avem niciunul)
-        internal HashSet<int> GetNeighboursInDirection(Direction dir)
+        internal HashSet<int> GetNeighboursInDirection(Dir dir)
         {
             if (directionPatternNeighbourDictionary.ContainsKey(dir))
             {

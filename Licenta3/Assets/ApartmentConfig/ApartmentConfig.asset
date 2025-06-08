@@ -14,16 +14,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rooms:
   - roomType: 2
-    roomDimensions: {x: 8, y: 5}
+    roomDimensions: {x: 5, y: 5}
   - roomType: 0
-    roomDimensions: {x: 7, y: 8}
+    roomDimensions: {x: 7, y: 5}
   - roomType: 2
     roomDimensions: {x: 6, y: 5}
   - roomType: 4
     roomDimensions: {x: 4, y: 4}
   - roomType: 3
-    roomDimensions: {x: 4, y: 5}
+    roomDimensions: {x: 3, y: 4}
   - roomType: 1
-    roomDimensions: {x: 7, y: 8}
+    roomDimensions: {x: 6, y: 5}
+  - roomType: 3
+    roomDimensions: {x: 3, y: 5}
+  - roomType: 2
+    roomDimensions: {x: 6, y: 5}
   includeOpenSpaceKitchen: 0
   includeOpenSpaceLivingRoom: 0
