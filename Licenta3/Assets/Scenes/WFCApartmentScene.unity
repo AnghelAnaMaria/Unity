@@ -2617,7 +2617,7 @@ Transform:
   m_GameObject: {fileID: 418213165}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 9.06, y: 4.09, z: -10}
+  m_LocalPosition: {x: 7.11, y: 5.13, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2698,7 +2698,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   inputTilemap: {fileID: 246543409}
   outputTilemap: {fileID: 959430100}
-  patternSize: 2
+  patternSize: 3
   maxIteration: 50000
   outputWidth: 7
   outputHeight: 7

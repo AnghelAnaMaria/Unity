@@ -22,13 +22,15 @@ namespace WaveFunctionCollapse
         private Stack<CollapseStep> lastSteps = new Stack<CollapseStep>();
         private int maxBacktrackSteps;
 
+        private HashSet<int> middlePatterns;
 
         //Metode:
-        public SolverManager(OutputGrid outputGrid, PatternManager patternManager, int maxBacktrackSteps, Dictionary<Vector2Int, HashSet<int>> softBanned)
+        public SolverManager(OutputGrid outputGrid, PatternManager patternManager, int maxBacktrackSteps, HashSet<int> middlePatterns, Dictionary<Vector2Int, HashSet<int>> softBanned)
         {
             this.outputGrid = outputGrid;
             this.patternManager = patternManager;
             this.maxBacktrackSteps = maxBacktrackSteps;
+            this.middlePatterns = middlePatterns;
             this.coreHelper = new HelperManager(this.patternManager);
             this.softBanned = softBanned;
             this.propagationHelper = new Propagation(this.outputGrid, this.coreHelper);
@@ -94,7 +96,20 @@ namespace WaveFunctionCollapse
             }
 
             possibleValuesAtNeighbour.IntersectWith(possibleIndices);//adica scapam de patterns incompatibile
+            if (IsInMiddle(propagatePair.BaseCellPosition))
+                possibleValuesAtNeighbour.ExceptWith(middlePatterns);
         }
+
+        private bool IsInMiddle(Vector2Int cell)
+        {
+            int middleWidth = outputGrid.width / 3;
+            int middleHeight = outputGrid.height / 3;
+            int middleStartX = (outputGrid.width - middleWidth) / 2;
+            int middleStartY = (outputGrid.height - middleHeight) / 2;
+            return cell.x >= middleStartX && cell.x < middleStartX + middleWidth &&
+                   cell.y >= middleStartY && cell.y < middleStartY + middleHeight;
+        }
+
 
         public Vector2Int GetLowestEntropyCell()
         {
@@ -160,7 +175,12 @@ namespace WaveFunctionCollapse
 
 
             //Rest:
-            List<int> possibleValues = outputGrid.GetPossibleValuesForPosition(cellCoordinates).ToList();//construiesc lista de pattern-uri (ID-uri) care mai pot sta pe celulă
+            //List<int> possibleValues = outputGrid.GetPossibleValuesForPosition(cellCoordinates).ToList();//construiesc lista de pattern-uri (ID-uri) care mai pot sta pe celulă
+            var possibleSet = outputGrid.GetPossibleValuesForPosition(cellCoordinates);
+            if (IsInMiddle(cellCoordinates))
+                possibleSet = possibleSet.Except(middlePatterns).ToHashSet();
+
+            List<int> possibleValues = possibleSet.ToList();
             Debug.Log("Avem " + possibleValues.Count + " patterns posibile pt celula cu coordonate " + cellCoordinates);
 
             var backup = new HashSet<int>(possibleValues);

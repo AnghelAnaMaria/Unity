@@ -45,8 +45,8 @@ public class Final : MonoBehaviour
         }
 
         // 1) Read the input Tilemap into a grid of IValue<TileBase>
-        var reader = new WaveFunctionCollapse.Input(inputTilemap);
-        var grid = reader.ReadInputToGrid();
+        var reader = new WaveFunctionCollapse.Input(inputTilemap);//avem matricea din scena
+        var grid = reader.ReadInputToGrid();// grid=IVal<TileBase>[][]
         inputManager = new InputManager<UnityEngine.Tilemaps.TileBase>(grid);//int[][] grid de indici de Tiles
 
 
@@ -153,8 +153,8 @@ public class Final : MonoBehaviour
         // 3) Initialize the WFC core 
         var restrictions = new Dictionary<Vector2Int, HashSet<int>>();//restrictiile pt anumite celule din output
         var allPatterns = Enumerable.Range(0, patternManager.GetNumberOfPatterns()).ToHashSet();
-        for (int px = (int)outputWidth / 4; px < (int)3 * outputWidth / 4; px++)
-            for (int py = (int)outputHeight / 4; py < (int)3 * outputHeight / 4; py++)
+        for (int px = (int)outputWidth / 3; px < (int)2 * outputWidth / 3; px++)
+            for (int py = (int)outputHeight / 3; py < (int)2 * outputHeight / 3; py++)
             {
                 restrictions[new Vector2Int(px, py)] = allPatterns.Except(middlePatterns).ToHashSet();
             }
@@ -178,7 +178,7 @@ public class Final : MonoBehaviour
         // //     {
         // //         softBanned[new Vector2Int(px, py)] = middlePatterns.ToHashSet();
         // //     }
-        core = new WFC(outputWidth, outputHeight, maxIteration, patternManager, stepsBack, softBanned, restrictions);
+        core = new WFC(outputWidth, outputHeight, maxIteration, patternManager, stepsBack, middlePatterns, softBanned, restrictions);
 
     }
 

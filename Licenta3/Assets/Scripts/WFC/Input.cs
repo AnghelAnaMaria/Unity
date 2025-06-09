@@ -30,10 +30,10 @@ namespace WaveFunctionCollapse
             {
                 for (int col = 0; col < grid[0].Length; col++)
                 {
-                    gridOfValues[row][col] = new TileBaseVal(grid[row][col]);//Aici ia fiecare TileBase și îl „împachetează” într-o instanță de TileBaseValue.  Nu facem o copie a sprite-ului sau a datelor tile-ului, ci doar păstrăm aceeași referință, dar într-un obiect wrapper care implementează IValue<TileBase>.
+                    gridOfValues[row][col] = new TileBaseVal(grid[row][col]);//Aici ia fiecare TileBase și îl „împachetează” într-o instanță de TileBaseVal.  Nu facem o copie a sprite-ului sau a datelor tile-ului, ci doar păstrăm aceeași referință, dar într-un obiect wrapper care implementează IValue<TileBase>.
                 }
             }
-            //Returnează IValue<TileBase>[][] către WFC
+            //Returnează IVal<TileBase>[][] către WFC
             return gridOfValues;//Aceste obiecte TileBaseValue sunt stocate în gridOfValues, un jagged array local pe care îl returnezi. 
         }                       //Când returnezi gridOfValues în ReadInputToGrid(), motorul WFC (sau codul care apelează metoda) prinde acest array într-o variabilă proprie. Pe durata execuției, atât gridOfValues, cât și referințele la TileBaseValue (care conțin TileBase-ul), vor rămâne în memorie atâta vreme cât mai există referințe către ele.
 

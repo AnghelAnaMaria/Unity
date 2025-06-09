@@ -44,7 +44,7 @@ namespace WaveFunctionCollapse
             Type typeForStrategy = GetTypeToCreate(nameOfStrategy);//Type pt numele nameOfStrategy
 
             if (typeForStrategy == null)
-                typeForStrategy = GetTypeToCreate("more");//adica luam Type=NeighboursStrategySize2OrMore
+                typeForStrategy = GetTypeToCreate("more");//adica luam Type=Neighbours2More
 
             return Activator.CreateInstance(typeForStrategy) as INeighbours;//Creează dinamic un obiect al clasei NeighbourStrategySize1Default sau NeighboursStrategySize2OrMore (ADICA O STRATEGIE)
         }

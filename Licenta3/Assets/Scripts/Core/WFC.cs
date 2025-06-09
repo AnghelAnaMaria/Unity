@@ -15,11 +15,12 @@ namespace WaveFunctionCollapse
         private int outputHeight;
         private Dictionary<Vector2Int, HashSet<int>> initialRestrictions;
         int maxBacktrackSteps;
+        private HashSet<int> middlePatterns;
 
 
 
         public OutputGrid OutputGrid => outputGrid;
-        public WFC(int outputWidth, int outputHeight, int maxIterations, PatternManager patternManager, int maxBacktrackSteps, Dictionary<Vector2Int, HashSet<int>> softBanned = null, Dictionary<Vector2Int, HashSet<int>> initialRestrictions = null)
+        public WFC(int outputWidth, int outputHeight, int maxIterations, PatternManager patternManager, int maxBacktrackSteps, HashSet<int> middlePatterns, Dictionary<Vector2Int, HashSet<int>> softBanned = null, Dictionary<Vector2Int, HashSet<int>> initialRestrictions = null)
         {
             this.outputWidth = outputWidth;
             this.outputHeight = outputHeight;
@@ -27,6 +28,7 @@ namespace WaveFunctionCollapse
             this.maxIterations = maxIterations;
             this.patternManager = patternManager;
             this.maxBacktrackSteps = maxBacktrackSteps;
+            this.middlePatterns = middlePatterns;
             this.softBanned = softBanned;
             this.initialRestrictions = initialRestrictions;
             ApplyInitialRestrictions();
@@ -48,7 +50,7 @@ namespace WaveFunctionCollapse
             while (iteration < this.maxIterations)
             {
                 if (coreSolver == null)
-                    coreSolver = new SolverManager(outputGrid, patternManager, maxBacktrackSteps, softBanned);
+                    coreSolver = new SolverManager(outputGrid, patternManager, maxBacktrackSteps, middlePatterns, softBanned);
                 int innerIteration = 100;
 
                 while (!coreSolver.CheckForConflicts() && !coreSolver.CheckIfSolved())//cat timp nu avem coliziuni(conflicte) si cat timp nu s-a rezolvat grila
@@ -87,7 +89,7 @@ namespace WaveFunctionCollapse
                         iteration++;
                         outputGrid.ResetAllPossibilities();
                         // ApplyInitialRestrictions();
-                        coreSolver = new SolverManager(this.outputGrid, this.patternManager, this.maxBacktrackSteps, softBanned);
+                        coreSolver = new SolverManager(this.outputGrid, this.patternManager, this.maxBacktrackSteps, this.middlePatterns, softBanned);
                     }
                 }
                 else

@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace WaveFunctionCollapse
 {//Strategia 2: consideram 2 patterns N*N ca fiind vecine daca au (N-1)*N tiles egale
-    public class Neighbours2 : INeighbours
+    public class Neighbours2More : INeighbours
     {
         public Dictionary<int, PatternNeighbours> FindNeighbours(PatternResults patternDataResults)//in PatternDataResults avem matricea de pattern-uri din care salvam pt fiecare pattern care ii sunt vecinii.
         {

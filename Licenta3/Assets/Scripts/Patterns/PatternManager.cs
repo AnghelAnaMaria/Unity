@@ -31,9 +31,9 @@ namespace WaveFunctionCollapse
             return strategy;
         }
 
-        public void ProcessGrid<T>(InputManager<T> valueManager, bool equalWeights, INeighbours strategy)//avem strategie
+        public void ProcessGrid<T>(InputManager<T> inputManager, bool equalWeights, INeighbours strategy)//avem strategie
         {
-            CreatePatterns(valueManager, strategy, equalWeights);
+            CreatePatterns(inputManager, strategy, equalWeights);
         }
 
         private void CreatePatterns<T>(InputManager<T> valueManager, INeighbours strategy, bool equalWeights)
