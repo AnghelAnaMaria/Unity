@@ -6,6 +6,12 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Scenes/MainMenu.unity
+    guid: 5f9a1c6d680a05d4891d5b5981bfa157
+  - enabled: 1
     path: Assets/Scenes/DungeonScene.unity
     guid: 2cda990e2423bbf4892e6590ba056729
+  - enabled: 1
+    path: Assets/Scenes/WFCApartmentScene.unity
+    guid: 05fb1399979e5d44eaae4a04cb320798
   m_configObjects: {}

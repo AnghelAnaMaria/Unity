@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Tilemaps;
+using System;
 
 
 namespace WaveFunctionCollapse
@@ -19,10 +21,12 @@ namespace WaveFunctionCollapse
         HelperManager coreHelper;//evalueaza entropia, genereaza vecinii, detecteaza coliziunile in timpul propagarii
         Propagation propagationHelper;//logica pt VectorPair
         Dictionary<Vector2Int, HashSet<int>> softBanned;
+        private HashSet<int> middlePatterns;
         private Stack<CollapseStep> lastSteps = new Stack<CollapseStep>();
         private int maxBacktrackSteps;
-
-        private HashSet<int> middlePatterns;
+        public System.Action<Vector2Int, int> OnCellCollapsed;
+        //System.Action<Vector2Int, int> este delegat= functie care primeste drept parametri un Vector2Int si un int =>DELAGAT
+        //OnCellCollapsed este un field care poate ține referința la una sau mai multe metode cu semnătura Action<Vector2Int,int> =>EVENT
 
         //Metode:
         public SolverManager(OutputGrid outputGrid, PatternManager patternManager, int maxBacktrackSteps, HashSet<int> middlePatterns, Dictionary<Vector2Int, HashSet<int>> softBanned)
@@ -96,6 +100,19 @@ namespace WaveFunctionCollapse
             }
 
             possibleValuesAtNeighbour.IntersectWith(possibleIndices);//adica scapam de patterns incompatibile
+
+            if (possibleValuesAtNeighbour.Count == 1)
+            {
+                int onlyPattern = possibleValuesAtNeighbour.First();
+                // 1) fixezi pattern-ul în grilă
+                // outputGrid.SetPatternOnPosition(propagatePair.CellToPropagatePosition.x, propagatePair.CellToPropagatePosition.y, onlyPattern);
+                // 2) declanșezi evenimentul ca WFC (clasa părinte) să adauge poziția în CollapseOrder
+                OnCellCollapsed?.Invoke(propagatePair.CellToPropagatePosition, onlyPattern);
+                // 3) continui propagarea de aici
+                // propagationHelper.AddNewPairsToPropagateQueue(propagatePair.CellToPropagatePosition, propagatePair.CellToPropagatePosition);
+                return;
+            }
+
             if (IsInMiddle(propagatePair.BaseCellPosition))
                 possibleValuesAtNeighbour.ExceptWith(middlePatterns);
         }
@@ -196,6 +213,7 @@ namespace WaveFunctionCollapse
             {
                 Debug.Log("Am ramas cu 1 pattern pt ccelula");
                 outputGrid.SetPatternOnPosition(cellCoordinates.x, cellCoordinates.y, possibleValues[0]);
+                OnCellCollapsed?.Invoke(cellCoordinates, possibleValues[0]);
                 propagationHelper.AddNewPairsToPropagateQueue(cellCoordinates, cellCoordinates);
                 return;
             }
@@ -223,7 +241,9 @@ namespace WaveFunctionCollapse
             int chosenPatternId = coreHelper.SelectSolutionPatternFromFrequency(validValues, cellCoordinates, softBanned);
             Debug.Log("pattern ales: " + chosenPatternId);
 
+
             outputGrid.SetPatternOnPosition(cellCoordinates.x, cellCoordinates.y, chosenPatternId);
+            OnCellCollapsed?.Invoke(cellCoordinates, chosenPatternId);
 
             propagationHelper.AddNewPairsToPropagateQueue(cellCoordinates, cellCoordinates);
 

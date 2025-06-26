@@ -24,17 +24,72 @@ public class Final : MonoBehaviour
     public bool equalWeights = false;
     public string strategyName;
     public int stepsBack = 5;
-    InputManager<UnityEngine.Tilemaps.TileBase> inputManager;//grila de int[][]
+
+    //Pt Tilemap rezultat extins:
+    public int chunkSize = 6;
+    public int overlap = 2;
+    public int gridWidth = 24;
+    public int gridHeight = 24;
+
+    //InputManager<UnityEngine.Tilemaps.TileBase> inputManager;//grila de int[][]
+    public InputManager<UnityEngine.Tilemaps.TileBase> inputManager { get; private set; }
+    public GameObject animatedTilePrefab;
     WFC core;//colapsam patterns
     PatternManager patternManager;//lucram cu patterns si grila de patterns
     TilemapOutput output;//desenam matricea finala (cu Tilebase)
+    private HashSet<int> leftPatterns = new HashSet<int>();
+    private HashSet<int> rightPatterns = new HashSet<int>();
+    private HashSet<int> downPatterns = new HashSet<int>();
+    private HashSet<int> upPatterns = new HashSet<int>();
+    private HashSet<int> middlePatterns = new HashSet<int>();
+    private Dictionary<Vector2Int, HashSet<int>> restrictions = new Dictionary<Vector2Int, HashSet<int>>();//restrictiile pt anumite celule din output
+    private Dictionary<Vector2Int, HashSet<int>> softBanned = new Dictionary<Vector2Int, HashSet<int>>();//dictionar (pozitie, ce patterns nu ne dorim)
+    private Dictionary<Vector2Int, int[][]> allChunkResults = new Dictionary<Vector2Int, int[][]>();
+
+    public static Final Instance { get; private set; }
+    private void Awake()
+    {
+        Instance = this;
+    }
+
 
     void Start()
     {
         CreateWFC();
-        CreateTilemap();
+        CreateLargeTilemap();
+
+        // CreateTilemap();
 
     }
+    // private IEnumerator Start()//corutina
+    // {
+
+    //     CreateWFC();
+    //     int[][] result = core.CreateOutputGrid();
+    //     output = new TilemapOutput(inputManager, outputTilemap);
+
+    //     var ordered = core.CollapseOrder;
+
+    //     if (result.Length == 0)
+    //     {
+    //         output.CreatePartialOutput(patternManager, core.OutputGrid, errorTile: null, pendingTile: null);
+    //         yield break;
+    //     }
+    //     else
+    //     {
+    //         //Call animation
+    //         yield return StartCoroutine(
+    //             output.AnimateOrderedOutput(
+    //                 ordered,      // lista de poziţii în ordinea colapsării
+    //                 result,                  // grila finală int[][] de pattern-uri
+    //                 patternManager,          // ca să convertim pattern → value
+    //                 inputManager,            // ca să convertim value → TileBase
+    //                 animatedTilePrefab,      // prefab‐ul cu AnimatedTileFall + SpriteRenderer
+    //                 0.05f                    // întârzierea între două căderi
+    //             )
+    //         );
+    //     }
+    // }
 
     public void CreateWFC()
     {
@@ -56,16 +111,18 @@ public class Final : MonoBehaviour
         patternManager.ProcessGrid(inputManager, equalWeights, strategy);
         // DebugPrintAllPatterns();
 
+        ApplyRestrictions();
+        // 3) Initialize the WFC core 
+        core = new WFC(outputWidth, outputHeight, maxIteration, patternManager, stepsBack, middlePatterns, softBanned, restrictions);
+
+    }
+
+    public void ApplyRestrictions()
+    {
         // 4) Apply per-column constraints on the pattern-grid
         int N = patternSize;
-        // Seturi în care salvez indexii ceruți
-        var leftPatterns = new HashSet<int>();
-        var rightPatterns = new HashSet<int>();
-        var downPatterns = new HashSet<int>();
-        var upPatterns = new HashSet<int>();
-        var middlePatterns = new HashSet<int>();
 
-        foreach (int pid in patternManager.GetAllPatternIndices())//MA MAI UIT AICI!!!!
+        foreach (int pid in patternManager.GetAllPatternIndices())
         {
             var patternData = patternManager.GetPatternDataFromIndex(pid);
             var pattern = patternData.Pattern;
@@ -150,8 +207,7 @@ public class Final : MonoBehaviour
         // }
 
 
-        // 3) Initialize the WFC core 
-        var restrictions = new Dictionary<Vector2Int, HashSet<int>>();//restrictiile pt anumite celule din output
+
         var allPatterns = Enumerable.Range(0, patternManager.GetNumberOfPatterns()).ToHashSet();
         for (int px = (int)outputWidth / 3; px < (int)2 * outputWidth / 3; px++)
             for (int py = (int)outputHeight / 3; py < (int)2 * outputHeight / 3; py++)
@@ -164,7 +220,6 @@ public class Final : MonoBehaviour
         // //     restrictions[new Vector2Int(outputWidth - 1, py)] = rightPatterns;//restrictii pt coloana dreapta
         // // core = new WFCCore(outputWidth, outputHeight, maxIteration, patternManager, restrictions);
 
-        var softBanned = new Dictionary<Vector2Int, HashSet<int>>();//dictionar (pozitie, ce patterns nu ne dorim)
         // for (int py = 0; py < outputHeight; py++)//pe marginea stângă
         //     softBanned[new Vector2Int(0, py)] = allPatterns.Except(leftPatterns).ToHashSet();
         // for (int py = 0; py < outputHeight; py++)//pe marginea dreaptă
@@ -178,8 +233,6 @@ public class Final : MonoBehaviour
         // //     {
         // //         softBanned[new Vector2Int(px, py)] = middlePatterns.ToHashSet();
         // //     }
-        core = new WFC(outputWidth, outputHeight, maxIteration, patternManager, stepsBack, middlePatterns, softBanned, restrictions);
-
     }
 
     void DebugPrintAllPatterns()
@@ -239,6 +292,87 @@ public class Final : MonoBehaviour
         {
             // Success, draw the full result
             output.CreateOutput(patternManager, result, outputWidth, outputHeight);
+            //StartCoroutine(output.AnimateOutput(patternManager, result, outputWidth, outputHeight, animatedTilePrefab));
+        }
+    }
+
+    public void CreateLargeTilemap()
+    {
+        int[][] finalGrid = new int[gridHeight][];
+        for (int y = 0; y < gridHeight; y++)
+            finalGrid[y] = new int[gridWidth]; //jagged array-ul final/rezultatul, in care salvam chunk-urile
+
+        bool hasFailedChunk = false;
+
+        for (int chunkX = 0; chunkX < gridWidth; chunkX += (chunkSize - patternSize))//asigură că fiecare chunk începe la poziția potrivită, astfel încât între două chunkuri consecutive să existe overlap exact de N (unde N = patternSize)
+        {
+            for (int chunkY = 0; chunkY < gridHeight; chunkY += (chunkSize - patternSize))
+            {
+                // 1. Calculez dimensiunea chunkului real:
+                int actualChunkWidth = Mathf.Min(chunkSize, gridWidth - chunkX);
+                int actualChunkHeight = Mathf.Min(chunkSize, gridHeight - chunkY);
+
+                // 1) Construieşti restricţiile iniţiale:
+                var initialRestrictions = new Dictionary<Vector2Int, HashSet<int>>();
+                var softBanned = new Dictionary<Vector2Int, HashSet<int>>();
+
+                if (chunkX == 0 && chunkY > 0)//pt prima coloana
+                {
+                    // Găsește chunkul de sub chunkul actual:
+                    Vector2Int belowChunkPos = new Vector2Int(chunkX, chunkY - (chunkSize - patternSize));//pozitia chunkului de sub
+                    int[][] belowChunkResult = allChunkResults[belowChunkPos];//iau din dictionar chunkul de sub
+
+                    // extrag PID-urile de pe ultimul rând al chunk-ului de sub
+                    for (int localX = 0; localX < actualChunkWidth; localX++)
+                    {
+                        int pidBelow = belowChunkResult[actualChunkHeight - 1][localX];
+
+                        // CHEIA este coordonata LOCALĂ în chunk: (localX, 0)
+                        initialRestrictions[new Vector2Int(localX, 0)] = new HashSet<int> { pidBelow };
+
+                    }
+
+                }
+
+                // Rulez WFC pe chunkul curent:
+                var wfcChunk = new WFC(actualChunkWidth, actualChunkHeight, maxIteration,
+                                       patternManager, stepsBack, middlePatterns,
+                                       softBanned, initialRestrictions);
+
+                int[][] chunkResult = wfcChunk.CreateOutputGrid();//generez chunk-ul
+                allChunkResults[new Vector2Int(chunkX, chunkY)] = chunkResult;//salvez chunk-ul in dictionar
+
+                if (chunkResult.Length == 0)
+                {
+                    hasFailedChunk = true;
+                    continue;
+                }
+
+
+                // Copiez rezultatul în gridul final
+                for (int localY = 0; localY < actualChunkHeight; localY++)
+                {
+                    for (int localX = 0; localX < actualChunkWidth; localX++)
+                    {
+                        finalGrid[chunkY + localY][chunkX + localX] = chunkResult[localY][localX];
+                    }
+                }
+            }
+        }
+
+        output = new TilemapOutput(inputManager, outputTilemap);
+
+        if (hasFailedChunk)
+        {
+            // Folosește metoda de partial draw pentru a desena tot ce s-a putut genera:
+            output.CreatePartialOutput(patternManager, core != null ? core.OutputGrid : null, errorTile: null, pendingTile: null);
+            // SAU, dacă vrei să desenezi direct din `finalGrid`, poți scrie o metodă de tipul:
+            // output.CreatePartialOutputFromGrid(patternManager, finalGrid, gridWidth, gridHeight, errorTile: null, pendingTile: null);
+        }
+        else
+        {
+            // Harta este complet generată:
+            output.CreateOutput(patternManager, finalGrid, gridWidth, gridHeight);
         }
     }
 
@@ -260,4 +394,5 @@ public class Final : MonoBehaviour
             PrefabUtility.SaveAsPrefabAsset(objectToSave, "Assets/Prefabs/output.prefab");
         }
     }
+
 }

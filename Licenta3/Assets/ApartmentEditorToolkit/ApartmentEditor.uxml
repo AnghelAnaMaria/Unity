@@ -1,0 +1,9 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/ApartmentEditorToolkit/CustomStyles.uss?fileID=7433441132597879392&amp;guid=7cd76e145ba075943b3cf97be3fee49f&amp;type=3#CustomStyles" />
+    <ui:VisualElement style="flex-grow: 1; position: absolute; background-image: url(&quot;project://database/Assets/Art/bg.png?fileID=2800000&amp;guid=5f5087a2831bbb4478840445df2a0472&amp;type=3#bg&quot;); left: 0; top: 0; right: 0; bottom: 0; -unity-background-scale-mode: scale-and-crop;" />
+    <ui:VisualElement name="Container" style="flex-grow: 1; max-width: 300px; align-self: center; margin-top: 50px; min-width: 300px; color: rgb(0, 0, 0);">
+        <ui:IntegerField label="Număr camere" value="3" name="RoomsCountField" focusable="true" is-delayed="true" style="opacity: 1; overflow: visible; visibility: visible; display: flex; flex-direction: row; color: rgb(0, 0, 0); background-color: rgba(0, 0, 0, 0); -unity-background-image-tint-color: rgb(255, 255, 255);" />
+        <ui:ScrollView scroll-deceleration-rate="0,135" elasticity="0,1" name="RoomsScroll" />
+        <ui:Button text="Parametri setați" parse-escape-sequences="true" display-tooltip-when-elided="true" name="ApplyButton" enable-rich-text="true" />
+    </ui:VisualElement>
+</ui:UXML>

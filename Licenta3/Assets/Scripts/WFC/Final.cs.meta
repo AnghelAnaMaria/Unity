@@ -3,7 +3,10 @@ guid: d1dfd2b0b3fcc454a87c94d7eb57acf3
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - inputTilemap: {instanceID: 0}
+  - outputTilemap: {instanceID: 0}
+  - animatedTilePrefab: {fileID: 4134184210745417848, guid: 0a94aa33095989a4a8b689bf681ca438, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

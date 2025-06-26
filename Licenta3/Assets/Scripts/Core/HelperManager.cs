@@ -10,7 +10,7 @@ namespace WaveFunctionCollapse
     {
         float totalFrequency = 0;
         float totalFrequencyLog = 0;
-        PatternManager patternManager;//rezultatul= grila de int care reprezinta grila finala de Tiles
+        PatternManager patternManager;
 
         //Metode:
         public HelperManager(PatternManager patternManager)

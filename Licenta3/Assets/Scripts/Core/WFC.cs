@@ -16,6 +16,7 @@ namespace WaveFunctionCollapse
         private Dictionary<Vector2Int, HashSet<int>> initialRestrictions;
         int maxBacktrackSteps;
         private HashSet<int> middlePatterns;
+        public List<Vector2Int> CollapseOrder { get; } = new List<Vector2Int>();//pt animatie
 
 
 
@@ -45,51 +46,58 @@ namespace WaveFunctionCollapse
 
         public int[][] CreateOutputGrid()
         {
+            CollapseOrder.Clear();
             int iteration = 0;
-            SolverManager coreSolver = null;
+            SolverManager solverManager = new SolverManager(outputGrid, patternManager, maxBacktrackSteps, middlePatterns, softBanned);
+            solverManager.OnCellCollapsed = (pos, pat) => CollapseOrder.Add(pos);//ma abonez la evenimenul OnCellCollapsed
+
+
             while (iteration < this.maxIterations)
             {
-                if (coreSolver == null)
-                    coreSolver = new SolverManager(outputGrid, patternManager, maxBacktrackSteps, middlePatterns, softBanned);
                 int innerIteration = 100;
 
-                while (!coreSolver.CheckForConflicts() && !coreSolver.CheckIfSolved())//cat timp nu avem coliziuni(conflicte) si cat timp nu s-a rezolvat grila
+                while (!solverManager.CheckForConflicts() && !solverManager.CheckIfSolved())//cat timp nu avem coliziuni(conflicte) si cat timp nu s-a rezolvat grila
                 {
-                    Vector2Int position = coreSolver.GetLowestEntropyCell();
-                    coreSolver.CollapseCell(position);//also adds neighbours to queue
-                    coreSolver.Propagate();
+                    Vector2Int position = solverManager.GetLowestEntropyCell();
+                    solverManager.CollapseCell(position);//also adds neighbours to queue
+                    solverManager.Propagate();
                     innerIteration--;
                     if (innerIteration <= 0)
                     {
                         Debug.Log("Propagation is taking too long");
-                        // Debug.Log("Remaining pattern possibilities:");
-                        // for (int y = 0; y < outputHeight; y++)
-                        // {
-                        //     for (int x = 0; x < outputWidth; x++)
-                        //     {
-                        //         Vector2Int pos = new Vector2Int(x, y);
-                        //         if (!outputGrid.CheckIfCellIsCollapsed(pos))
-                        //         {
-                        //             var poss = outputGrid.GetPossibleValuesForPosition(pos);
-                        //             Debug.Log($"Cell ({x},{y}): {string.Join(",", poss)}");
-                        //         }
-                        //     }
-                        // }
                         return new int[0][];
                     }
                 }
 
-                if (coreSolver.CheckForConflicts())
+                if (solverManager.CheckForConflicts())
                 {
                     Debug.Log("\nConflict occurred. Iteration: " + iteration);
 
-                    bool didBacktrack = coreSolver.BacktrackLastSteps();
+                    bool didBacktrack = solverManager.BacktrackLastSteps();
                     if (!didBacktrack)
                     {
                         iteration++;
                         outputGrid.ResetAllPossibilities();
                         // ApplyInitialRestrictions();
-                        coreSolver = new SolverManager(this.outputGrid, this.patternManager, this.maxBacktrackSteps, this.middlePatterns, softBanned);
+                        solverManager = new SolverManager(this.outputGrid, this.patternManager, this.maxBacktrackSteps, this.middlePatterns, softBanned);
+                        solverManager.OnCellCollapsed = (pos, pat) => CollapseOrder.Add(pos);
+
+                        if (initialRestrictions != null)
+                        {
+                            foreach (var kvp in initialRestrictions)
+                            {
+                                var pos = kvp.Key;
+                                var allowed = kvp.Value;
+                                if (allowed.Count == 1)
+                                {
+                                    // Folosește chiar CollapseCell — el știe să pună pattern-ul când e o singură posibilitate
+                                    solverManager.CollapseCell(pos);
+                                    // 3) Apoi propagatează imediat
+                                    solverManager.Propagate();
+                                }
+                            }
+                        }
+
                     }
                 }
                 else

@@ -23,7 +23,7 @@ public class WFCInspector : Editor//în locul inspectorului default vom folosi c
         if (GUILayout.Button("Create tilemap"))
         {
             myScript.CreateWFC();
-            myScript.CreateTilemap();
+            //myScript.CreateTilemap();
         }
 
         //Desenează un buton în Inspector cu eticheta “Save tilemap”:

@@ -1,0 +1,7 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:VisualElement style="flex-grow: 1; flex-direction: column;">
+        <ui:DropdownField label="Room Type" name="RoomTypeDropdown" choices="3" style="flex-direction: column;" />
+        <ui:IntegerField label="Integer Field" value="42" name="XField" />
+        <ui:IntegerField label="Integer Field" value="42" name="YField" />
+    </ui:VisualElement>
+</ui:UXML>

@@ -11,6 +11,9 @@ public class RoomConfig
 
 
     public RoomType GetRoomType() => roomType;
+    public void SetRoomType(RoomType type) => roomType = type;
+
     public Vector2Int GetRoomDimensions() => roomDimensions;
+    public void SetRoomDimensions(Vector2Int dim) => roomDimensions = dim;
 
 }
