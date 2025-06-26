@@ -20,8 +20,6 @@ public class ApartmentConfigUI : MonoBehaviour
         roomsCountField = root.Q<IntegerField>("RoomsCountField");
         applyButton = root.Q<Button>("ApplyButton");
 
-        // ... roomsCountField & applyButton setup omitted for brevity ...
-
         RefreshUI();
         UpdateApplyButtonState();
     }
@@ -34,32 +32,30 @@ public class ApartmentConfigUI : MonoBehaviour
         for (int i = 0; i < rooms.Count; i++)
         {
             var room = rooms[i];
-            var roomItem = roomEditorTemplate.Instantiate();
+            var roomItem = roomEditorTemplate.Instantiate();//sablon uxml pt camera noastra
 
             var dropdown = roomItem.Q<DropdownField>("RoomTypeDropdown");
             var xField = roomItem.Q<IntegerField>("XField");
             var yField = roomItem.Q<IntegerField>("YField");
 
-            // Populate dropdown as before
-            dropdown.choices = new List<string>(System.Enum.GetNames(typeof(RoomType)));
-            dropdown.value = room.GetRoomType().ToString();
-            dropdown.RegisterValueChangedCallback(evt =>
+
+            dropdown.choices = new List<string>(System.Enum.GetNames(typeof(RoomType)));//optiuni în dropdown
+            dropdown.value = room.GetRoomType().ToString();//valoarea din Inspector
+            dropdown.RegisterValueChangedCallback(evt => //eveniment
             {
                 if (System.Enum.TryParse(evt.newValue, out RoomType t))
                     room.SetRoomType(t);
                 UpdateApplyButtonState();
             });
 
-            // Grab the inner TextField so we can intercept keystrokes
-            var xInput = xField.Q<TextField>(null, "unity-text-input");
-            var yInput = yField.Q<TextField>(null, "unity-text-input");
 
-            // 1) Allow blank by clearing on first backspace
+            var xInput = xField.Q<TextField>(null, "unity-text-input");//dimensiuni din UI Toolkit
+            var yInput = yField.Q<TextField>(null, "unity-text-input");
             if (xInput != null)
             {
                 xInput.RegisterCallback<KeyDownEvent>(evt =>
                 {
-                    if (evt.keyCode == KeyCode.Backspace && xInput.value.Length <= 1)
+                    if (evt.keyCode == KeyCode.Backspace && xInput.value.Length <= 1)//fara dimensiune x<=1
                     {
                         xInput.value = "";
                         evt.StopPropagation();
@@ -70,7 +66,7 @@ public class ApartmentConfigUI : MonoBehaviour
             {
                 yInput.RegisterCallback<KeyDownEvent>(evt =>
                 {
-                    if (evt.keyCode == KeyCode.Backspace && yInput.value.Length <= 1)
+                    if (evt.keyCode == KeyCode.Backspace && yInput.value.Length <= 1)//fara dimensiune y<=1
                     {
                         yInput.value = "";
                         evt.StopPropagation();
@@ -78,8 +74,8 @@ public class ApartmentConfigUI : MonoBehaviour
                 });
             }
 
-            // 2) Update model on every valid change, but don't clamp yet
-            xField.RegisterValueChangedCallback(evt =>
+
+            xField.RegisterValueChangedCallback(evt =>  //eveniment
             {
                 var dims = room.GetRoomDimensions();
                 dims.x = evt.newValue;
@@ -94,12 +90,12 @@ public class ApartmentConfigUI : MonoBehaviour
                 UpdateApplyButtonState();
             });
 
-            // 3) When they leave the field, enforce our >=2 rule
+            // regula >=2 
             xField.RegisterCallback<FocusOutEvent>(evt =>
             {
                 int parsed = 0;
                 if (!int.TryParse(xInput.value, out parsed))
-                    parsed = room.GetRoomDimensions().x; // fallback to model
+                    parsed = room.GetRoomDimensions().x;
                 int clamped = Mathf.Max(2, parsed);
                 xField.SetValueWithoutNotify(clamped);
                 var dims = room.GetRoomDimensions();
@@ -120,11 +116,10 @@ public class ApartmentConfigUI : MonoBehaviour
                 UpdateApplyButtonState();
             });
 
-            // 4) Initialize the visible value from the model
+            //valorile vizibile
             xField.SetValueWithoutNotify(room.GetRoomDimensions().x);
             yField.SetValueWithoutNotify(room.GetRoomDimensions().y);
 
-            // 5) Disable if locked
             if (isLocked)
             {
                 dropdown.SetEnabled(false);
@@ -178,6 +173,5 @@ public class ApartmentConfigUI : MonoBehaviour
         {
             Debug.Log($"• {room.GetRoomType()} ({room.GetRoomDimensions().x}×{room.GetRoomDimensions().y})");
         }
-        // TODO: hook in your real generation logic here
     }
 }
