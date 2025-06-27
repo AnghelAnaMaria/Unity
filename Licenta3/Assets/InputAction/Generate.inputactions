@@ -13,6 +13,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "toggleMenu",
+                    "type": "Button",
+                    "id": "1308c9cf-6695-4553-b0aa-7120b0ad92b3",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -35,6 +44,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "generate",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "9aae85b7-ada4-4088-ac09-05ea3f973619",
+                    "path": "<Keyboard>/#(M)",
+                    "interactions": "Press",
+                    "processors": "",
+                    "groups": "",
+                    "action": "toggleMenu",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

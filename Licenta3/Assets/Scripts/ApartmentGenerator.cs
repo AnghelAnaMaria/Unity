@@ -1101,9 +1101,9 @@ public class ApartmentGenerator : MonoBehaviour
                             Debug.LogWarning($"Nu s-a putut genera coridor între {bestStart} și {bestEnd}");
                             continue;
                         }
+                        List<Vector2Int> thickCorridor = ExpandCorridorThickness(corridor, dungeonData.GetDungeonRoomTiles(), dungeonData.GetDungeonHallTiles());
                         dungeonData.AddRoomStartEnd(roomA);
                         dungeonData.AddLenghtStartEnd(corridor.Count);
-                        List<Vector2Int> thickCorridor = ExpandCorridorThickness(corridor, dungeonData.GetDungeonRoomTiles(), dungeonData.GetDungeonHallTiles());
 
                         //Create Hall
                         Hall newHall = new Hall(Vector2Int.zero, Vector2Int.zero);
@@ -1611,7 +1611,6 @@ public class ApartmentGenerator : MonoBehaviour
 
         return thickCorridor.ToList();
     }
-
 
     private void ExtendHallToMaxForAllRooms()
     {

@@ -1,8 +1,73 @@
-#RoomsCountField > .unity-text-input {
-    text-shadow: 0 0 0 rgba(0, 0, 0, 0);
-    background-color: rgba(255, 255, 255, 0);
-    border-top-width: 12px;
-    border-right-width: 12px;
-    border-bottom-width: 12px;
-    border-left-width: 12px;
+#RoomsCountField #unity-text-input {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+    max-width: 50px;
+    min-width: 50px;
+    margin-left: 0;
+    -unity-text-align: middle-left;
+    align-items: auto;
+    align-self: flex-start;
+    justify-content: flex-start;
+    flex-direction: row-reverse;
+    white-space: normal;
+    max-height: 36px;
+    color: rgb(0, 0, 0);
+}
+
+#XField #unity-text-input {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+    max-width: 50px;
+    min-width: 50px;
+    margin-left: 0;
+    -unity-text-align: middle-left;
+    align-items: auto;
+    align-self: flex-start;
+    justify-content: flex-start;
+    flex-direction: row-reverse;
+    white-space: normal;
+    max-height: 36px;
+    color: rgb(0, 0, 0);
+}
+
+#YField #unity-text-input {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+    max-width: 50px;
+    min-width: 50px;
+    margin-left: 0;
+    -unity-text-align: middle-left;
+    align-items: auto;
+    align-self: flex-start;
+    justify-content: flex-start;
+    flex-direction: row-reverse;
+    white-space: normal;
+    max-height: 36px;
+    color: rgb(0, 0, 0);
+}
+
+#RoomTypeDropdown VisualElement {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+    color: rgb(0, 0, 0);
+}
+
+#KitchenOpenSpaceToggle VisualElement {
+    -unity-text-align: upper-left;
+    align-self: center;
+    align-items: stretch;
+    flex-shrink: 1;
+    flex-direction: row-reverse;
+}
+
+#LivingRoomOpenSpaceToggle VisualElement {
+    flex-direction: row-reverse;
 }

@@ -23,8 +23,28 @@ public class ApartmentConfig : ScriptableObject
         return rooms;
     }
 
-    public bool IncludeOpenSpaceKitchen => includeOpenSpaceKitchen;
-    public bool IncludeOpenSpaceLivingRoom => includeOpenSpaceLivingRoom;
+    public void AddRoom()
+    {
+        rooms.Add(new RoomConfig());
+    }
+
+    public void RemoveRoomAt(int index)
+    {
+        if (index >= 0 && index < rooms.Count)
+            rooms.RemoveAt(index);
+    }
+
+    public bool IncludeOpenSpaceKitchen
+    {
+        get => includeOpenSpaceKitchen;
+        set => includeOpenSpaceKitchen = value;
+    }
+
+    public bool IncludeOpenSpaceLivingRoom
+    {
+        get => includeOpenSpaceLivingRoom;
+        set => includeOpenSpaceLivingRoom = value;
+    }
 
     /*public List<RoomConfig> GetHalls()
     {

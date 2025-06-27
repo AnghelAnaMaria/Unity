@@ -1,0 +1,19 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/WFCEditorToolkit/WFCStyles.uss?fileID=7433441132597879392&amp;guid=b9e0d7557d1512a439259b846ab5ce26&amp;type=3#WFCStyles" />
+    <ui:VisualElement style="flex-grow: 1; background-image: url(&quot;project://database/Assets/Art/bg.png?fileID=2800000&amp;guid=5f5087a2831bbb4478840445df2a0472&amp;type=3#bg&quot;); -unity-background-scale-mode: scale-and-crop; position: absolute; left: 0; top: 0; right: 0; bottom: 0;" />
+    <ui:VisualElement style="flex-grow: 0; max-width: 400px; align-self: center; min-width: 400px; border-top-width: 0; margin-top: 30px; padding-top: 10px; padding-right: 20px; padding-bottom: 10px; padding-left: 20px; -unity-text-align: upper-left; text-overflow: clip; align-items: stretch; justify-content: flex-start; background-color: rgba(255, 255, 255, 0.38); flex-shrink: 0; border-top-left-radius: 16px; border-top-right-radius: 16px; border-bottom-right-radius: 16px; border-bottom-left-radius: 16px;">
+        <ui:IntegerField label="Mărime pattern" value="3" name="PatternSize" focusable="true" style="border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; -unity-text-align: upper-left; justify-content: space-between; font-size: 18px;" />
+        <ui:IntegerField label="Iterații maxime" value="50000" name="MaxIterations" focusable="true" style="justify-content: space-between; font-size: 18px;" />
+        <ui:IntegerField label="Lungime Tilemap" value="7" name="Width" focusable="true" style="justify-content: space-between; font-size: 18px;" />
+        <ui:IntegerField label="Înălțime Tilemap" value="7" name="Height" style="justify-content: space-between; font-size: 18px;" />
+        <ui:Toggle label="Frecvențe egale" name="EqualWeights" focusable="true" style="justify-content: space-between; font-size: 18px;" />
+        <ui:DropdownField label="Strategie folosită" index="0" choices="1,2" name="StrategyName" style="background-color: rgba(45, 45, 45, 0); justify-content: space-between; font-size: 18px;" />
+        <ui:IntegerField label="Pași backtracking" value="20" name="StepsBack" focusable="true" style="justify-content: space-between; font-size: 18px;" />
+        <ui:IntegerField label="Mărime Chunk" value="6" focusable="true" name="ChunkSize" style="justify-content: space-between; font-size: 18px;" />
+        <ui:IntegerField label="Overlap Chunk" value="3" focusable="true" name="Overlap" readonly="false" style="justify-content: space-between; font-size: 18px;" />
+        <ui:IntegerField label="Lungime grid" value="10" focusable="true" name="GridWidth" style="justify-content: space-between; font-size: 18px;" />
+        <ui:IntegerField label="Înălțime grid" value="10" focusable="true" name="GridHeight" style="justify-content: space-between; font-size: 18px;" />
+        <ui:Button text="Parametri setați" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Parameters" focusable="true" style="background-color: rgb(231, 231, 231); border-top-left-radius: 10px; border-top-right-radius: 10px; border-bottom-right-radius: 10px; border-bottom-left-radius: 10px; font-size: 18px;" />
+        <ui:Button text="Main Menu" parse-escape-sequences="true" display-tooltip-when-elided="true" name="MainMenu" focusable="true" style="border-top-left-radius: 10px; border-top-right-radius: 10px; border-bottom-right-radius: 10px; border-bottom-left-radius: 10px; background-color: rgb(231, 231, 231); margin-top: 4px; justify-content: flex-start; align-self: auto; border-top-width: 1px; font-size: 18px;" />
+    </ui:VisualElement>
+</ui:UXML>

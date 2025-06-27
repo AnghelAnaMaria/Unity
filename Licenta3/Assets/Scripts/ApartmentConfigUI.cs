@@ -1,27 +1,74 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 
 public class ApartmentConfigUI : MonoBehaviour
 {
     public ApartmentConfig apartmentConfig;
+    public IntegerField roomsCount;
     public VisualTreeAsset roomEditorTemplate;
 
     private ScrollView roomsScroll;
-    private IntegerField roomsCountField;
-    private Button applyButton;
+    private Button setParametersButton;
     private VisualElement root;
+
     private bool isLocked = false;
+    private Toggle kitchenToggle;
+    private Toggle livingRoomToggle;
+    private Button goToMainMenu;
+
 
     void Awake()
     {
         root = GetComponent<UIDocument>().rootVisualElement;
+
         roomsScroll = root.Q<ScrollView>("RoomsScroll");
-        roomsCountField = root.Q<IntegerField>("RoomsCountField");
-        applyButton = root.Q<Button>("ApplyButton");
+        setParametersButton = root.Q<Button>("ApplyButton");
+        roomsCount = root.Q<IntegerField>("RoomsCountField");
+        kitchenToggle = root.Q<Toggle>("KitchenOpenSpaceToggle");
+        livingRoomToggle = root.Q<Toggle>("LivingRoomOpenSpaceToggle");
+
+        goToMainMenu = root.Q<Button>("GoToMainMenu");
+
+        if (goToMainMenu != null)
+        {
+            goToMainMenu.clicked += OnGoToOtherPressed;
+        }
+
+        roomsCount.RegisterValueChangedCallback(evt =>
+        {
+            if (isLocked) return;
+            AdjustRoomsList(evt.newValue);
+            RefreshUI();
+            UpdateApplyButtonState();
+        });
+
+        kitchenToggle.RegisterValueChangedCallback(evt => //RegisterValueChangedCallback este built-in UI Toolkit API method (pentru value-change notifications)
+        {
+            apartmentConfig.IncludeOpenSpaceKitchen = evt.newValue;
+            UpdateApplyButtonState();//gray or not the applyButton button
+        });
+        livingRoomToggle.RegisterValueChangedCallback(evt =>
+        {
+            apartmentConfig.IncludeOpenSpaceLivingRoom = evt.newValue;
+            UpdateApplyButtonState();//gray or not the applyButton button
+        });
+
+        if (setParametersButton != null)
+            setParametersButton.clicked += OnApplyPressed;
 
         RefreshUI();
         UpdateApplyButtonState();
+    }
+
+    void AdjustRoomsList(int newCount)
+    {
+        var rooms = apartmentConfig.GetRooms();
+        while (rooms.Count < newCount)
+            apartmentConfig.AddRoom();
+        while (rooms.Count > newCount)
+            apartmentConfig.RemoveRoomAt(rooms.Count - 1);
     }
 
     void RefreshUI()
@@ -34,14 +81,13 @@ public class ApartmentConfigUI : MonoBehaviour
             var room = rooms[i];
             var roomItem = roomEditorTemplate.Instantiate();//sablon uxml pt camera noastra
 
-            var dropdown = roomItem.Q<DropdownField>("RoomTypeDropdown");
+            var dropdown = roomItem.Q<DropdownField>("RoomTypeDropdown");//atribute camera
             var xField = roomItem.Q<IntegerField>("XField");
             var yField = roomItem.Q<IntegerField>("YField");
 
-
             dropdown.choices = new List<string>(System.Enum.GetNames(typeof(RoomType)));//optiuni în dropdown
             dropdown.value = room.GetRoomType().ToString();//valoarea din Inspector
-            dropdown.RegisterValueChangedCallback(evt => //eveniment
+            dropdown.RegisterValueChangedCallback(evt => //eveniment (daca s-a schimbat valoarea in meniu)
             {
                 if (System.Enum.TryParse(evt.newValue, out RoomType t))
                     room.SetRoomType(t);
@@ -49,16 +95,18 @@ public class ApartmentConfigUI : MonoBehaviour
             });
 
 
-            var xInput = xField.Q<TextField>(null, "unity-text-input");//dimensiuni din UI Toolkit
-            var yInput = yField.Q<TextField>(null, "unity-text-input");
+            var xInput = xField.Q<TextField>(null, "unity-text-input");//dimensiune x din UI Toolkit
+            var yInput = yField.Q<TextField>(null, "unity-text-input");//dimensiune y din UI Toolkit
+
+
             if (xInput != null)
             {
-                xInput.RegisterCallback<KeyDownEvent>(evt =>
+                xInput.RegisterCallback<KeyDownEvent>(evt => //RegisterCallback este built-in UI Toolkit method on VisualElement; asigura subscribe la evenimente
                 {
-                    if (evt.keyCode == KeyCode.Backspace && xInput.value.Length <= 1)//fara dimensiune x<=1
+                    if (evt.keyCode == KeyCode.Backspace && xInput.value.Length <= 1)//fara dimensiune x<=1 cand folosim Backspace pt a sterge valoarea x
                     {
                         xInput.value = "";
-                        evt.StopPropagation();
+                        evt.StopPropagation();//not responding to this change
                     }
                 });
             }
@@ -66,16 +114,16 @@ public class ApartmentConfigUI : MonoBehaviour
             {
                 yInput.RegisterCallback<KeyDownEvent>(evt =>
                 {
-                    if (evt.keyCode == KeyCode.Backspace && yInput.value.Length <= 1)//fara dimensiune y<=1
+                    if (evt.keyCode == KeyCode.Backspace && yInput.value.Length <= 1)//fara dimensiune y<=1 cand folosim Backspace pt a sterge valoarea y
                     {
                         yInput.value = "";
-                        evt.StopPropagation();
+                        evt.StopPropagation();//not responding to this change
                     }
                 });
             }
 
 
-            xField.RegisterValueChangedCallback(evt =>  //eveniment
+            xField.RegisterValueChangedCallback(evt =>  //fires when the field’s parsed value actually changes—after the user commits a new number, toggles a checkbox, or selects a new dropdown entry
             {
                 var dims = room.GetRoomDimensions();
                 dims.x = evt.newValue;
@@ -120,7 +168,7 @@ public class ApartmentConfigUI : MonoBehaviour
             xField.SetValueWithoutNotify(room.GetRoomDimensions().x);
             yField.SetValueWithoutNotify(room.GetRoomDimensions().y);
 
-            if (isLocked)
+            if (isLocked)//pe perioada executiei nu schimbam valorile
             {
                 dropdown.SetEnabled(false);
                 xField.SetEnabled(false);
@@ -129,16 +177,27 @@ public class ApartmentConfigUI : MonoBehaviour
 
             roomsScroll.Add(roomItem);
         }
+
+        bool hasKitchen = rooms.Exists(r => r.GetRoomType() == RoomType.Bucatarie);
+        bool hasLivingRoom = rooms.Exists(r => r.GetRoomType() == RoomType.Sufragerie);
+
+        kitchenToggle.SetEnabled(hasKitchen);
+        livingRoomToggle.SetEnabled(hasLivingRoom);
+
+        roomsCount.SetValueWithoutNotify(rooms.Count);
+        kitchenToggle.SetValueWithoutNotify(apartmentConfig.IncludeOpenSpaceKitchen && hasKitchen);
+        livingRoomToggle.SetValueWithoutNotify(apartmentConfig.IncludeOpenSpaceLivingRoom && hasLivingRoom);
+
     }
 
 
-    void UpdateApplyButtonState()
+    void UpdateApplyButtonState()//gestionare buton setParametersButton
     {
-        if (applyButton == null) return;
-        applyButton.SetEnabled(CanApply());
+        if (setParametersButton == null) return;
+        setParametersButton.SetEnabled(CanApply());//to gray (or not) the button
     }
 
-    bool CanApply()
+    bool CanApply()//conditii pentru apartament
     {
         var rooms = apartmentConfig.GetRooms();
         if (rooms.Count < 3) return false;
@@ -157,7 +216,7 @@ public class ApartmentConfigUI : MonoBehaviour
         return hasDorm && hasBuc && hasBaie;
     }
 
-    void OnApplyPressed()
+    void OnApplyPressed()//Meniul dispare si incepe generarea
     {
         if (!CanApply()) return;
 
@@ -173,5 +232,22 @@ public class ApartmentConfigUI : MonoBehaviour
         {
             Debug.Log($"• {room.GetRoomType()} ({room.GetRoomDimensions().x}×{room.GetRoomDimensions().y})");
         }
+    }
+
+    void Update()//La apasarea tastei M reapare meniul
+    {
+        if (isLocked && Input.GetKeyDown(KeyCode.M))
+        {
+            isLocked = false;
+            root.style.display = DisplayStyle.Flex;
+
+            RefreshUI();
+            UpdateApplyButtonState();
+        }
+    }
+
+    private void OnGoToOtherPressed()
+    {
+        SceneManager.LoadScene("MainMenu");
     }
 }

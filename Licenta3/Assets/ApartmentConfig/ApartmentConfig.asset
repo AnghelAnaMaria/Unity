@@ -15,9 +15,15 @@ MonoBehaviour:
   rooms:
   - roomType: 2
     roomDimensions: {x: 5, y: 5}
-  - roomType: 4
-    roomDimensions: {x: 5, y: 5}
   - roomType: 0
-    roomDimensions: {x: 5, y: 5}
+    roomDimensions: {x: 7, y: 5}
+  - roomType: 2
+    roomDimensions: {x: 6, y: 5}
+  - roomType: 4
+    roomDimensions: {x: 4, y: 4}
+  - roomType: 3
+    roomDimensions: {x: 4, y: 3}
+  - roomType: 1
+    roomDimensions: {x: 6, y: 6}
   includeOpenSpaceKitchen: 0
   includeOpenSpaceLivingRoom: 0

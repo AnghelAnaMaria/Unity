@@ -1,7 +1,8 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/ApartmentEditorToolkit/CustomStyles.uss?fileID=7433441132597879392&amp;guid=7cd76e145ba075943b3cf97be3fee49f&amp;type=3#CustomStyles" />
     <ui:VisualElement style="flex-grow: 1; flex-direction: column;">
-        <ui:DropdownField label="Room Type" name="RoomTypeDropdown" choices="3" style="flex-direction: column;" />
-        <ui:IntegerField label="Integer Field" value="42" name="XField" />
-        <ui:IntegerField label="Integer Field" value="42" name="YField" />
+        <ui:DropdownField label="Room Type" name="RoomTypeDropdown" choices="3" focusable="true" style="flex-direction: column; color: rgb(255, 255, 255);" />
+        <ui:IntegerField label="Integer Field" value="5" name="XField" focusable="true" style="color: rgb(255, 255, 255); justify-content: space-between;" />
+        <ui:IntegerField label="Integer Field" value="5" name="YField" focusable="true" style="color: rgb(255, 255, 255); justify-content: space-between;" />
     </ui:VisualElement>
 </ui:UXML>

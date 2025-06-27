@@ -1,0 +1,30 @@
+#unity-text-input {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+    max-width: 100px;
+    align-items: stretch;
+    align-self: auto;
+}
+
+#EqualWeights VisualElement {
+    flex-shrink: 0;
+    flex-direction: row;
+    justify-content: flex-end;
+}
+
+Label {
+    color: rgb(255, 255, 255);
+    font-size: 18px;
+}
+
+#StrategyName VisualElement {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+    background-color: rgb(231, 231, 231);
+    max-width: 100px;
+    min-height: auto;
+}
