@@ -26,11 +26,11 @@ public class HoverManager : MonoBehaviour
                 tileToRoom[tile] = room;
             }
         }
+    }
 
-        foreach (var kvp in tileToRoom)
-        {
-            Debug.Log($"Key: {kvp.Key}, Value: {kvp.Value}");
-        }
+    public void RefreshTileLookup()
+    {
+        BuildTileLookup();
     }
 
     void Update()
@@ -55,7 +55,7 @@ public class HoverManager : MonoBehaviour
             // Dacă vrei m² reale, înmulţeşte dim.x/ dim.y cu mărimea celulei:
             float cellSize = roomTilemap.cellSize.x; // presupunem pătrat
             float area = dim.x * dim.y * cellSize * cellSize;
-            Debug.Log(name);
+
             tooltipManager.ShowTooltip($"{name}\n{area:0.##} m²");
         }
         else

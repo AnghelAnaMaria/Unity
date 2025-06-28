@@ -16,6 +16,23 @@ public class TooltipManager : MonoBehaviour
     {
         if (!gameObject.activeSelf) return;
 
+        UpdateTooltipPosition();
+    }
+
+    public void ShowTooltip(string text)
+    {
+        tooltipText.text = text;
+        UpdateTooltipPosition();
+        gameObject.SetActive(true);
+    }
+
+    public void HideTooltip()
+    {
+        gameObject.SetActive(false);
+    }
+
+    private void UpdateTooltipPosition()
+    {
         Vector2 anchoredPos;
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
             transform.parent as RectTransform,      // canvasul
@@ -24,17 +41,6 @@ public class TooltipManager : MonoBehaviour
             out anchoredPos
         );
 
-        rectTransform.anchoredPosition = anchoredPos + new Vector2(20f, -30f); // puțin mai jos de mouse
-    }
-
-    public void ShowTooltip(string text)
-    {
-        tooltipText.text = text;
-        gameObject.SetActive(true);
-    }
-
-    public void HideTooltip()
-    {
-        gameObject.SetActive(false);
+        rectTransform.anchoredPosition = anchoredPos + new Vector2(20f, -30f);
     }
 }

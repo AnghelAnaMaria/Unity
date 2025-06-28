@@ -2044,40 +2044,48 @@ public class ApartmentGenerator : MonoBehaviour
 
     private void AdjustCameraToDungeon()
     {
-        if (dungeonData == null || dungeonData.GetRooms().Count == 0)
+        var allTiles = dungeonData.GetDungeonRoomTiles();
+        if (allTiles == null || allTiles.Count == 0)
         {
-            Debug.LogError("DungeonData nu conține camere!");
+            Debug.LogError("No rooms to fit camera to!");
             return;
         }
 
-        // Inițializăm limitele (Bounds) folosind prima cameră
-        Vector2Int firstRoomCenter = dungeonData.GetRooms()[0].GetRoomCenterPos();
-        Bounds bounds = new Bounds(new Vector3(firstRoomCenter.x, firstRoomCenter.y, 0), Vector3.zero);
+        // Get the Tilemap cell size so we convert tile coords into world units
+        Vector2 cellSize = roomMap.cellSize;
 
-        // Extindem limitele pentru toate camerele
-        foreach (var room in dungeonData.GetRooms())
+        // Build world-space min/max
+        float minX = float.MaxValue, maxX = float.MinValue;
+        float minY = float.MaxValue, maxY = float.MinValue;
+        foreach (var tile in allTiles)
         {
-            Vector2Int roomCenter = room.GetRoomCenterPos();
-            Vector2 roomSize = room.GetDimensions(); // Vector2 pentru dimensiuni
+            float wx = tile.x * cellSize.x;
+            float wy = tile.y * cellSize.y;
 
-            Vector3 roomPos = new Vector3(roomCenter.x, roomCenter.y, 0);
-            Vector3 roomSize3D = new Vector3(roomSize.x, roomSize.y, 0);
-
-            bounds.Encapsulate(roomPos + roomSize3D / 2);
-            bounds.Encapsulate(roomPos - roomSize3D / 2);
+            if (wx < minX) minX = wx;
+            if (wx > maxX) maxX = wx;
+            if (wy < minY) minY = wy;
+            if (wy > maxY) maxY = wy;
         }
 
-        // Setăm noua poziție a camerei
-        Camera.main.transform.position = new Vector3(bounds.center.x, bounds.center.y, Camera.main.transform.position.z);
+        // Compute center and extents
+        float width = maxX - minX;
+        float height = maxY - minY;
+        Vector3 camPos = new Vector3((minX + maxX) / 2f, (minY + maxY) / 2f, Camera.main.transform.position.z);
 
-        // Calculăm dimensiunea optimă a camerei
-        float verticalSize = bounds.extents.y + 2f; // Adăugăm o margine
-        float horizontalSize = (bounds.extents.x + 2f) / Camera.main.aspect;
+        // Move the camera
+        Camera.main.transform.position = camPos;
 
-        float zoomFactor = 0.9f; // Reduce dimensiunea camerei cu 10%
-        Camera.main.orthographicSize = Mathf.Max(verticalSize, horizontalSize) * zoomFactor;
+        // How much extra margin (in world-units) do you want around the rooms?
+        float margin = 2f;
 
-        Debug.Log($"Camera ajustată la poziția {Camera.main.transform.position}, cu mărimea {Camera.main.orthographicSize}");
+        // orthographicSize is half-height in world units
+        float requiredHalfHeight = height / 2f + margin;
+        // and to fit the width:
+        float requiredHalfWidth = (width / Camera.main.aspect) / 2f + margin;
+
+        Camera.main.orthographicSize = Mathf.Max(requiredHalfHeight, requiredHalfWidth);
+
+        Debug.Log($"Camera centered at {camPos} with size {Camera.main.orthographicSize}");
     }
-
 }
