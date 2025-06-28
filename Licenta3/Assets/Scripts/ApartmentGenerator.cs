@@ -202,21 +202,21 @@ public class ApartmentGenerator : MonoBehaviour
 
         //ConnectFirstTwoGroupsWithAStar(dungeonData.GetListRoomGroups(), dungeonData.GetDirections(), LShapeGroups);//merge
 
-        ConnectGroupCentersWithAStar(dungeonData.GetListRoomGroups());//pt primele 2 grupe
-        HashSet<Room> roomsFreeBorderGroup1 = GetRoomsWithFreeBorderTiles(dungeonData.GetListRoomGroups()[0], startBorderDirection);
-        HashSet<Room> roomsFreeBorderGroup2 = GetRoomsWithFreeBorderTiles(dungeonData.GetListRoomGroups()[1], endBorderDirection);
-        ConnectRoomsWithFreeBordersToNearestHall(roomsFreeBorderGroup1, startBorderDirection, dungeonData.GetHalls()[0]);
-        ConnectRoomsWithFreeBordersToNearestHall(roomsFreeBorderGroup2, endBorderDirection, dungeonData.GetHalls()[0]);
+        // ConnectGroupCentersWithAStar(dungeonData.GetListRoomGroups());//pt primele 2 grupe
+        // HashSet<Room> roomsFreeBorderGroup1 = GetRoomsWithFreeBorderTiles(dungeonData.GetListRoomGroups()[0], startBorderDirection);
+        // HashSet<Room> roomsFreeBorderGroup2 = GetRoomsWithFreeBorderTiles(dungeonData.GetListRoomGroups()[1], endBorderDirection);
+        // ConnectRoomsWithFreeBordersToNearestHall(roomsFreeBorderGroup1, startBorderDirection, dungeonData.GetHalls()[0]);
+        // ConnectRoomsWithFreeBordersToNearestHall(roomsFreeBorderGroup2, endBorderDirection, dungeonData.GetHalls()[0]);
 
+        // AddTilesInCornerDirections(dungeonData.GetListRoomGroups());
+        // // ConnectBetweenGroupsWithAStar(dungeonData.GetListRoomGroups(), 1, dungeonData.GetListRoomGroups().Count, dungeonData.GetDirections());//merge
+        // // ConnectRoomsWithClosestHall(dungeonData.GetListRoomGroups(), 2, dungeonData.GetListRoomGroups().Count, dungeonData.GetHalls());
+        // // ConnectDisjointHalls(dungeonData.GetHalls());
 
-        ConnectBetweenGroupsWithAStar(dungeonData.GetListRoomGroups(), 0, dungeonData.GetListRoomGroups().Count, dungeonData.GetDirections());//merge
-        ConnectRoomsWithClosestHall(dungeonData.GetListRoomGroups(), 2, dungeonData.GetListRoomGroups().Count, dungeonData.GetHalls());
-        ConnectDisjointHalls(dungeonData.GetHalls());
-
-        ExtendHallToMaxForAllRooms();
-        FillHallGaps();
-        FillHallGaps();
-        PruneIsolatedHallTiles();
+        // ExtendHallToMaxForAllRooms();
+        // FillHallGaps();
+        // FillHallGaps();
+        // PruneIsolatedHallTiles();
 
 
 
@@ -854,7 +854,7 @@ public class ApartmentGenerator : MonoBehaviour
         }
     }
 
-    private HashSet<Room> GetFreeBorderTilesForGivenDirection(List<Room> group, Func<Room, List<Vector2Int>> getBorderTilesFunc, Vector2Int direction)
+    private HashSet<Room> GetFreeBorderTilesForGivenDirection(List<Room> group, Func<Room, List<Vector2Int>> getTilesInDirFunc, Vector2Int direction)
     {
         var roomsToConnect = new HashSet<Room>();
         var dungeonRoomTiles = dungeonData.GetDungeonRoomTiles();
@@ -862,20 +862,30 @@ public class ApartmentGenerator : MonoBehaviour
         foreach (var room in group)//pt fiecare camera din grup
         {
             bool allFree = true;
-            foreach (Vector2Int tile in getBorderTilesFunc(room))//pt fiecare tile in directia data
+            int countOccupiedBorderTiles = 0;
+            int numberOfTiles = getTilesInDirFunc(room).Count;//cate tiles avem in directia data (pt camera curenta)
+            foreach (Vector2Int tile in getTilesInDirFunc(room))//pt fiecare tile in directia data
             {
-                var borderTile = tile + direction;//border
+                var borderTile = tile + direction;//border tile
                 if (dungeonRoomTiles.Contains(borderTile))
                 {
-                    allFree = false;
-                    break;
+                    //allFree = false;
+                    countOccupiedBorderTiles = countOccupiedBorderTiles + 1;
+                    //break;
                 }
             }
+
+            if (countOccupiedBorderTiles > numberOfTiles / 2)
+            {
+                allFree = false;
+            }
+
             if (allFree)
             {
                 roomsToConnect.Add(room);
             }
         }
+
         return roomsToConnect;
     }
 
@@ -1165,6 +1175,56 @@ public class ApartmentGenerator : MonoBehaviour
         // Toate grupurile au cel puțin o margine neacoperită de hol
         return true;
     }
+
+    private void AddTilesInCornerDirections(List<List<Room>> groups)
+    {
+        foreach (var group in groups)
+        {
+            foreach (Room room in group)
+            {
+                var up = room.GetUpTiles();
+                var down = room.GetDownTiles();
+                var left = room.GetLeftTiles();
+                var right = room.GetRightTiles();
+
+                //colturile exterioare unei camere
+                Vector2Int ul = up.Intersect(left).FirstOrDefault() + new Vector2Int(-1, 1);
+                Vector2Int ur = up.Intersect(right).FirstOrDefault() + new Vector2Int(1, 1);
+                Vector2Int dr = down.Intersect(right).FirstOrDefault() + new Vector2Int(1, -1);
+                Vector2Int dl = down.Intersect(left).FirstOrDefault() + new Vector2Int(-1, -1);
+
+                if (dungeonData.GetDungeonHallTiles().Contains(ul))
+                {
+                    Vector2Int pos = ul + new Vector2Int(-1, 1);
+                    dungeonData.AddDungeonHallTiles(pos);
+                    Vector3Int tilePosition = new Vector3Int(pos.x, pos.y, 0);
+                    paths.SetTile(tilePosition, floorTile);
+                }
+                if (dungeonData.GetDungeonHallTiles().Contains(ur))
+                {
+                    Vector2Int pos = ur + new Vector2Int(1, 1);
+                    dungeonData.AddDungeonHallTiles(pos);
+                    Vector3Int tilePosition = new Vector3Int(pos.x, pos.y, 0);
+                    paths.SetTile(tilePosition, floorTile);
+                }
+                if (dungeonData.GetDungeonHallTiles().Contains(dr))
+                {
+                    Vector2Int pos = dr + new Vector2Int(1, -1);
+                    dungeonData.AddDungeonHallTiles(pos);
+                    Vector3Int tilePosition = new Vector3Int(pos.x, pos.y, 0);
+                    paths.SetTile(tilePosition, floorTile);
+                }
+                if (dungeonData.GetDungeonHallTiles().Contains(dl))
+                {
+                    Vector2Int pos = dl + new Vector2Int(-1, -1);
+                    dungeonData.AddDungeonHallTiles(pos);
+                    Vector3Int tilePosition = new Vector3Int(pos.x, pos.y, 0);
+                    paths.SetTile(tilePosition, floorTile);
+                }
+            }
+        }
+    }
+
 
     public bool IsRoomConnected(Room room)
     {

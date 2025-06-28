@@ -26,12 +26,18 @@ public class HoverManager : MonoBehaviour
                 tileToRoom[tile] = room;
             }
         }
+
+        foreach (var kvp in tileToRoom)
+        {
+            Debug.Log($"Key: {kvp.Key}, Value: {kvp.Value}");
+        }
     }
 
     void Update()
     {
         // 1) Obţine poziţia în lume a mouse-ului
         Vector3 screenPos = Input.mousePosition;
+
         // dacă ai cameră perspective, setează aici z = distanţa până la planul tilemap
         screenPos.z = Mathf.Abs(mainCamera.transform.position.z);
         Vector3 mouseWorld = mainCamera.ScreenToWorldPoint(screenPos);
@@ -39,7 +45,7 @@ public class HoverManager : MonoBehaviour
         // 2) Converteşte în coordonate de celulă
         Vector3Int cell = roomTilemap.WorldToCell(mouseWorld);
         var tilePos = new Vector2Int(cell.x, cell.y);
-
+        //Debug.Log(tileToRoom.TryGetValue(tilePos, out Room niggaRoom));
         // 3) Caută camera în dicţionar
         if (tileToRoom != null && tileToRoom.TryGetValue(tilePos, out Room hoveredRoom))
         {
@@ -49,7 +55,7 @@ public class HoverManager : MonoBehaviour
             // Dacă vrei m² reale, înmulţeşte dim.x/ dim.y cu mărimea celulei:
             float cellSize = roomTilemap.cellSize.x; // presupunem pătrat
             float area = dim.x * dim.y * cellSize * cellSize;
-
+            Debug.Log(name);
             tooltipManager.ShowTooltip($"{name}\n{area:0.##} m²");
         }
         else
