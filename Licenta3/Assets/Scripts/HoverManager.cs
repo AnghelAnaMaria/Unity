@@ -22,7 +22,6 @@ public class HoverManager : MonoBehaviour
         {
             foreach (var tile in room.GetFloorTiles())
             {
-                // Dacă două camere ar share-ui acelaşi tile, îl va înlocui pe ultimul
                 tileToRoom[tile] = room;
             }
         }
@@ -52,9 +51,9 @@ public class HoverManager : MonoBehaviour
             string name = hoveredRoom.GetRoomType().ToString();
             Vector2Int dim = hoveredRoom.GetDimensions();
 
-            // Dacă vrei m² reale, înmulţeşte dim.x/ dim.y cu mărimea celulei:
-            float cellSize = roomTilemap.cellSize.x; // presupunem pătrat
-            float area = dim.x * dim.y * cellSize * cellSize;
+            // pentru m² reale, înmulţeşte dim.x/ dim.y cu mărimea celulei:
+            float cellSize = roomTilemap.cellSize.x;
+            float area = dim.x * dim.y;
 
             tooltipManager.ShowTooltip($"{name}\n{area:0.##} m²");
         }

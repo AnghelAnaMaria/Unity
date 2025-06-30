@@ -16,7 +16,7 @@ using System.Data;
 public class ApartmentGenerator : MonoBehaviour
 {
 
-    [SerializeField] private Tilemap roomMap, colliderMap, leftWalls, rightWalls, upWalls, downWalls, rightBoundary, upBoundary, leftBoundary, downBoundary, paths, objects, overObjects;
+    [SerializeField] private Tilemap roomMap, colliderMap, leftWalls, rightWalls, upWalls, downWalls, rightBoundary, upBoundary, leftBoundary, downBoundary, paths, objects, overObjects, extraHall;
 
     [SerializeField] private TileBase floorTile, colliderTile, sandstone, leftWall, rightWall, upWall, downWall, rightBoundaryWall, upBoundaryWall, leftBoundaryWall, downBoundaryWall, counter, sink;
 
@@ -114,8 +114,6 @@ public class ApartmentGenerator : MonoBehaviour
         AdjustCameraToDungeon();
         OnFinishedRoomGenerator?.Invoke();
 
-        //Allow manual editing after generation
-        CanEdit = true;
     }
 
     private void GenerateApartment()
@@ -202,21 +200,29 @@ public class ApartmentGenerator : MonoBehaviour
 
         //ConnectFirstTwoGroupsWithAStar(dungeonData.GetListRoomGroups(), dungeonData.GetDirections(), LShapeGroups);//merge
 
-        // ConnectGroupCentersWithAStar(dungeonData.GetListRoomGroups());//pt primele 2 grupe
-        // HashSet<Room> roomsFreeBorderGroup1 = GetRoomsWithFreeBorderTiles(dungeonData.GetListRoomGroups()[0], startBorderDirection);
-        // HashSet<Room> roomsFreeBorderGroup2 = GetRoomsWithFreeBorderTiles(dungeonData.GetListRoomGroups()[1], endBorderDirection);
-        // ConnectRoomsWithFreeBordersToNearestHall(roomsFreeBorderGroup1, startBorderDirection, dungeonData.GetHalls()[0]);
-        // ConnectRoomsWithFreeBordersToNearestHall(roomsFreeBorderGroup2, endBorderDirection, dungeonData.GetHalls()[0]);
+        ConnectGroupCentersWithAStar(dungeonData.GetListRoomGroups());//pt primele 2 grupe
+        HashSet<Room> roomsFreeBorderGroup1 = GetRoomsWithFreeBorderTiles(dungeonData.GetListRoomGroups()[0], startBorderDirection);
+        HashSet<Room> roomsFreeBorderGroup2 = GetRoomsWithFreeBorderTiles(dungeonData.GetListRoomGroups()[1], endBorderDirection);
+        PruneIsolatedHallTiles();
+        ConnectRoomsWithFreeBordersToNearestHall(roomsFreeBorderGroup1, startBorderDirection, dungeonData.GetHalls()[0]);
+        ConnectRoomsWithFreeBordersToNearestHall(roomsFreeBorderGroup2, endBorderDirection, dungeonData.GetHalls()[0]);
+        PruneIsolatedHallTiles();
 
-        // AddTilesInCornerDirections(dungeonData.GetListRoomGroups());
-        // // ConnectBetweenGroupsWithAStar(dungeonData.GetListRoomGroups(), 1, dungeonData.GetListRoomGroups().Count, dungeonData.GetDirections());//merge
-        // // ConnectRoomsWithClosestHall(dungeonData.GetListRoomGroups(), 2, dungeonData.GetListRoomGroups().Count, dungeonData.GetHalls());
-        // // ConnectDisjointHalls(dungeonData.GetHalls());
 
-        // ExtendHallToMaxForAllRooms();
-        // FillHallGaps();
-        // FillHallGaps();
-        // PruneIsolatedHallTiles();
+        // ConnectBetweenGroupsWithAStar(dungeonData.GetListRoomGroups(), 0, dungeonData.GetListRoomGroups().Count, dungeonData.GetDirections());//merge
+        PruneIsolatedHallTiles();
+        ConnectRoomsWithClosestHall(dungeonData.GetListRoomGroups(), 2, dungeonData.GetListRoomGroups().Count, dungeonData.GetHalls());
+        PruneIsolatedHallTiles();
+        ConnectDisjointHalls(dungeonData.GetHalls());
+        PruneIsolatedHallTiles();
+
+        AddTilesInCornerDirections(dungeonData.GetListRoomGroups());
+        ExtendHallToMaxForAllRooms();
+        ExtendHallToMaxForAllRooms();
+        FillHallGaps();
+        FillHallGaps();
+        PruneIsolatedHallTiles();
+        //  FillDiagonalHallGapsRecursive();
 
 
 
@@ -251,6 +257,10 @@ public class ApartmentGenerator : MonoBehaviour
         int lastGroupDirection = -1;
         List<int> possibleDirections = new List<int> { 0, 1, 2, 3 };//sus, stanga, jos, dreapta
 
+        //Alegem o direcție aleatorie dintre cele valide
+        int groupDirection = possibleDirections[UnityEngine.Random.Range(0, possibleDirections.Count)];
+
+
         for (int i = contorFirst; i < contorFinal; i++)
         {
             List<Room> newGroup = new List<Room>();
@@ -260,20 +270,21 @@ public class ApartmentGenerator : MonoBehaviour
                 continue;
             }
 
-            // inițial: nu e L‑shaped
+            //inițial: nu e L‑shaped
             bool isLShape = false;
             int directionChangeCount = 0;
 
             currentPosition = currentPosition + roomGroups[i][0].AddToCurrentPosition(lastGroupDirection);
 
-            // if (lastGroupDirection != -1) //Dacă avem deja un grup plasat
-            // {
-            //     int oppositeDirection = (lastGroupDirection + 2) % 4;
-            //     possibleDirections.Remove(oppositeDirection); //Eliminăm direcția inversă
-            // }
+            if (lastGroupDirection != -1) //Dacă avem deja un grup plasat
+            {
+                int oppositeDirection = (lastGroupDirection + 2) % 4;
+                possibleDirections.Remove(oppositeDirection); //Eliminăm direcția inversă
+            }
 
-            //Alegem o direcție aleatorie dintre cele valide
-            int groupDirection = possibleDirections[UnityEngine.Random.Range(0, possibleDirections.Count)];
+            // //Alegem o direcție aleatorie dintre cele valide
+            // int groupDirection = possibleDirections[UnityEngine.Random.Range(0, possibleDirections.Count)];
+
 
             int prevDir = groupDirection;
 
@@ -307,13 +318,14 @@ public class ApartmentGenerator : MonoBehaviour
                     directionChangeCount++;
                     prevDir = direction;
                 }
-                // c) marchează L‑shape dacă ai măcar un cot
+                //marchează L‑shape dacă ai măcar un cot
                 if (directionChangeCount >= 1)
                     isLShape = true;
 
-                groupDirection = possibleDirections[(groupDirection + 1) % 4];
+                if (isLShape == false)
+                    groupDirection = (groupDirection + 1) % 4;
 
-                // **Ensure no collision before placing**
+                //ne asiguram ca nu avem coliziuni inainte de plasare
                 Vector2Int position = FindValidRoomPosition(positionInter, currentRoom, occupiedPositions, true);
                 currentRoom.SetRoomCenter(position);
                 roomGroups[i][j].SetRoomCenter(position);
@@ -348,6 +360,8 @@ public class ApartmentGenerator : MonoBehaviour
                     }
                 }
             }
+            if (isLShape == false)
+                groupDirection = (groupDirection + 1) % 4;
 
             lastGroupDirection = groupDirection;
             dungeonData.AddDirection(lastGroupDirection);
@@ -661,10 +675,8 @@ public class ApartmentGenerator : MonoBehaviour
     private void ConnectFirstTwoGroupsWithAStar(List<List<Room>> roomGroups, List<int> directions, List<bool> IsLShape)
     {
         Debug.Log("Metoda ConnectGroupsWithAStar a fost apelata!");
-
         if (roomGroups.Count < 2)
             return;
-
 
         List<Room> currentGroup = roomGroups[0];
         List<Room> nextGroup = roomGroups[1];//2 grupuri consecutive
@@ -732,6 +744,7 @@ public class ApartmentGenerator : MonoBehaviour
 
     private void ConnectGroupCentersWithAStar(List<List<Room>> roomGroups)
     {
+        Debug.Log("Am apelat ConnectGroupCentersWithAStar");
         if (roomGroups.Count < 2)
         {
             Debug.LogWarning("Sunt necesare cel puțin 2 grupuri pentru această funcție.");
@@ -771,6 +784,52 @@ public class ApartmentGenerator : MonoBehaviour
 
         hall.SetHallCenter(median);
         dungeonData.AddHall(hall);
+    }
+
+    private void PatchCorners(List<List<Room>> roomGroups)
+    {
+        Debug.Log("Am apelat PatchCorners");
+        if (roomGroups.Count < 2)
+        {
+            Debug.LogWarning("Sunt necesare cel puțin 2 grupuri pentru această funcție.");
+            return;
+        }
+
+        centerA = CalculateGroupCenter(roomGroups[0]);
+        centerB = CalculateGroupCenter(roomGroups[1]);
+        Vector2Int start1 = GetNearestWalkableBorderTile(roomGroups[0], centerA).closestTile;
+        Vector2Int start2 = GetNearestWalkableBorderTile(roomGroups[1], centerB).closestTile;
+
+        int maxVal1 = int.MaxValue;
+        Vector2Int pos1 = Vector2Int.zero;
+        foreach (var tile in dungeonData.GetDungeonHallTiles())
+        {
+            int dist = AStarPathfinder.ManhattanDistance(tile, start1);
+            if (dist < maxVal1)
+            {
+                maxVal1 = dist;
+                pos1 = tile;
+            }
+        }
+
+        List<Vector2Int> corridor = AStarPathfinder.AStarPathfindingExtended(pos1, start1);
+        if (corridor == null || corridor.Count == 0)
+        {
+            Debug.LogWarning($"Nu s-a putut genera coridor între {pos1} și {start1}");
+        }
+
+        List<Vector2Int> thickCorridor = ExpandCorridorThickness(corridor, dungeonData.GetDungeonRoomTiles(), dungeonData.GetDungeonHallTiles());
+        //Hall
+        foreach (var tile in thickCorridor)
+        {
+            if (!dungeonData.GetDungeonHallTiles().Contains(tile))
+            {
+                dungeonData.AddDungeonHallTiles(tile);
+                Vector3Int tilePosition = new Vector3Int(tile.x, tile.y, 0);
+                paths.SetTile(tilePosition, floorTile);
+            }
+        }
+
     }
 
     private Vector2Int CalculateGroupCenter(List<Room> group)
@@ -899,72 +958,123 @@ public class ApartmentGenerator : MonoBehaviour
 
         foreach (Room room in roomsWithFreeBorders)
         {
-            if (!IsRoomConnected(room))
+            if (IsRoomConnected(room) || hall == null) continue;
+
+            dungeonData.AddRoomStartEnd(room);
+            List<Vector2Int> hallTiles = hall.GetFloorTiles();
+            List<Vector2Int> borderTiles = getBorderTilesFunc(room).Select(t => t + direction).Where(t => !dungeonData.GetDungeonHallTiles().Contains(t)).ToList();//Ia toate tile-urile de pe muchia respectivă cu offset spre exterior
+
+            // verifică ambele seturi de „tile”-uri
+            if (hallTiles == null || hallTiles.Count == 0 ||
+                borderTiles == null || borderTiles.Count == 0)
             {
-                if (hall != null)
+                Debug.LogWarning("Nu sunt puncte de conectare valide — sărim peste acest cuplaj.");
+                continue;
+            }
+
+            Vector2Int bestStart = borderTiles[0];
+            Vector2Int bestEnd = hallTiles[0];
+            int bestDist = int.MaxValue;
+            foreach (var cTile in borderTiles)
+            {
+                foreach (var hTile in hallTiles)
                 {
-                    dungeonData.AddRoomStartEnd(room);
-                    List<Vector2Int> hallTiles = hall.GetFloorTiles();
-                    List<Vector2Int> borderTiles = getBorderTilesFunc(room).Select(t => t + direction).ToList();//Ia toate tile-urile de pe muchia respectivă cu offset spre exterior
-
-                    // verifică ambele seturi de „tile”-uri
-                    if (hallTiles == null || hallTiles.Count == 0 ||
-                        borderTiles == null || borderTiles.Count == 0)
+                    int dist = AStarPathfinder.ManhattanDistance(cTile, hTile);
+                    if (dist < bestDist)
                     {
-                        Debug.LogWarning("Nu sunt puncte de conectare valide — sărim peste acest cuplaj.");
-                        continue;
-                    }
-
-                    Vector2Int bestStart = borderTiles[0];
-                    Vector2Int bestEnd = hallTiles[0];
-                    int bestDist = int.MaxValue;
-                    foreach (var cTile in borderTiles)
-                    {
-                        foreach (var hTile in hallTiles)
-                        {
-                            int dist = AStarPathfinder.ManhattanDistance(cTile, hTile);
-                            if (dist < bestDist)
-                            {
-                                bestDist = dist;
-                                bestStart = cTile;
-                                bestEnd = hTile;
-                            }
-                        }
-                    }
-                    Debug.Log("start: " + bestStart);
-                    Debug.Log("end: " + bestEnd);
-
-                    List<Vector2Int> corridor = AStarPathfinder.AStarPathfindingExtended(bestStart, bestEnd);
-
-                    //if (IsCorridorOk(new List<List<Room>> { currentGroup }, corridor) == false)
-                    {
-                        // continue;
-                    }
-                    /*foreach (var tile in corridor)
-                    {
-                        Debug.Log("tile: " + tile);
-                    }*/
-
-                    if (corridor == null || corridor.Count == 0)
-                    {
-                        Debug.LogWarning($"Nu s-a putut genera coridor între {bestStart} și {bestEnd}");
-                        continue;
-                    }
-
-                    List<Vector2Int> thickCorridor = ExpandCorridorThickness(corridor, dungeonData.GetDungeonRoomTiles(), dungeonData.GetDungeonHallTiles());
-                    //Hall
-                    foreach (var tile in thickCorridor)
-                    {
-                        if (!dungeonData.GetDungeonHallTiles().Contains(tile))
-                        {
-                            hall.AddFloorTiles(tile);
-                            dungeonData.AddDungeonHallTiles(tile);
-                            Vector3Int tilePosition = new Vector3Int(tile.x, tile.y, 0);
-                            paths.SetTile(tilePosition, floorTile);
-                        }
+                        bestDist = dist;
+                        bestStart = cTile;
+                        bestEnd = hTile;
                     }
                 }
             }
+            Debug.Log("start: " + bestStart);
+            Debug.Log("end: " + bestEnd);
+
+            List<Vector2Int> corridor = AStarPathfinder.AStarPathfindingExtended(bestStart, bestEnd);
+
+            //if (IsCorridorOk(new List<List<Room>> { currentGroup }, corridor) == false)
+            {
+                // continue;
+            }
+            /*foreach (var tile in corridor)
+            {
+                Debug.Log("tile: " + tile);
+            }*/
+
+            if (corridor == null || corridor.Count == 0)
+            {
+                Debug.LogWarning($"Nu s-a putut genera coridor între {bestStart} și {bestEnd}");
+                continue;
+            }
+
+            List<Vector2Int> thickCorridor = ExpandCorridorThickness(corridor, dungeonData.GetDungeonRoomTiles(), dungeonData.GetDungeonHallTiles());
+            //Hall
+            foreach (var tile in thickCorridor)
+            {
+                if (!dungeonData.GetDungeonHallTiles().Contains(tile))
+                {
+                    hall.AddFloorTiles(tile);
+                    dungeonData.AddDungeonHallTiles(tile);
+                    Vector3Int tilePosition = new Vector3Int(tile.x, tile.y, 0);
+                    paths.SetTile(tilePosition, floorTile);
+                }
+            }
+
+            // //Away part:
+            // Vector2Int tileAway = borderTiles[0];
+            // int maxDist = int.MinValue;
+            // foreach (var tile in borderTiles)
+            // {
+            //     int dist = AStarPathfinder.ManhattanDistance(bestStart, tile);
+            //     if (dist > maxDist)
+            //     {
+            //         maxDist = dist;
+            //         tileAway = tile;
+            //     }
+            // }
+            // Debug.Log("tileAway: " + tileAway);
+            // Vector3Int position = new Vector3Int(tileAway.x, tileAway.y, 0);
+            // // extraHall.SetTile(position, sandstone);
+
+            // int distToHall = int.MaxValue;
+            // Vector2Int tileChosen = Vector2Int.zero;
+            // foreach (var hallTile in hall.GetFloorTiles())
+            // {
+            //     int dist = AStarPathfinder.ManhattanDistance(tileAway, hallTile);
+            //     if (dist < distToHall)
+            //     {
+            //         distToHall = dist;
+            //         tileChosen = hallTile;
+            //     }
+            // }
+            // Debug.Log("tileChosen: " + tileChosen);
+
+            // List<Vector2Int> corridorAway = null;
+
+            // if (tileAway != tileChosen)
+            //     corridorAway = AStarPathfinder.AStarPathfindingExtended(tileAway, tileChosen);
+
+            // if (corridorAway == null || corridorAway.Count == 0)
+            // {
+            //     Debug.LogWarning($"Nu s-a putut genera coridor între {tileAway} și {tileChosen}");
+            //     continue;
+            // }
+
+            // List<Vector2Int> thickCorridorAway = ExpandCorridorThickness(corridorAway, dungeonData.GetDungeonRoomTiles(), dungeonData.GetDungeonHallTiles());
+            // //Hall
+            // foreach (var tile in thickCorridorAway)
+            // {
+            //     if (!dungeonData.GetDungeonHallTiles().Contains(tile) && !dungeonData.GetDungeonRoomTiles().Contains(tile))
+            //     {
+            //         Debug.Log("pozitie: " + tile);
+            //         hall.AddFloorTiles(tile);
+            //         dungeonData.AddDungeonHallTiles(tile);
+            //         Vector3Int tilePosition = new Vector3Int(tile.x, tile.y, 0);
+            //         //extraHall.SetTile(tilePosition, floorTile);
+            //         //  paths.RefreshTile(tilePosition);
+            //     }
+            // }
         }
     }
 
@@ -1822,6 +1932,98 @@ public class ApartmentGenerator : MonoBehaviour
         return count;
     }
 
+    private void FillDiagonalHallGaps()
+    {
+        var hallTiles = new HashSet<Vector2Int>(dungeonData.GetDungeonHallTiles());
+        var roomTiles = new HashSet<Vector2Int>(dungeonData.GetDungeonRoomTiles());
+        var candidates = new HashSet<Vector2Int>();//hall border tiles
+
+        foreach (var h in hallTiles)
+        {
+            foreach (var dir in ApartmentData.fourDirections)
+            {
+                var c = h + dir;
+                if (!hallTiles.Contains(c) && !roomTiles.Contains(c))
+                    candidates.Add(c);
+            }
+        }
+
+        var toAdd = new List<Vector2Int>();
+
+        foreach (var t in candidates)
+        {
+            bool up = hallTiles.Contains(t + Vector2Int.up);
+            bool down = hallTiles.Contains(t + Vector2Int.down);
+            bool left = hallTiles.Contains(t + Vector2Int.left);
+            bool right = hallTiles.Contains(t + Vector2Int.right);
+
+            // diagonal checks: UR, UL, DR, DL
+            if ((up && right) ||
+                (up && left) ||
+                (down && right) ||
+                (down && left))
+            {
+                toAdd.Add(t);
+            }
+        }
+
+        foreach (var t in toAdd)
+        {
+            dungeonData.AddDungeonHallTiles(t);
+            paths.SetTile(new Vector3Int(t.x, t.y, 0), floorTile);
+        }
+    }
+
+    private void FillDiagonalHallGapsRecursive()
+    {
+        var roomTiles = new HashSet<Vector2Int>(dungeonData.GetDungeonRoomTiles());
+
+        while (true)
+        {
+            var hallTiles = new HashSet<Vector2Int>(dungeonData.GetDungeonHallTiles());
+            var candidates = new HashSet<Vector2Int>();//hall border tiles
+
+            foreach (var h in hallTiles)
+            {
+                foreach (var dir in ApartmentData.fourDirections)
+                {
+                    var c = h + dir;
+                    if (!hallTiles.Contains(c) && !roomTiles.Contains(c))
+                        candidates.Add(c);
+                }
+            }
+
+            var toAdd = new List<Vector2Int>();
+
+            foreach (var t in candidates)
+            {
+                bool up = hallTiles.Contains(t + Vector2Int.up);
+                bool down = hallTiles.Contains(t + Vector2Int.down);
+                bool left = hallTiles.Contains(t + Vector2Int.left);
+                bool right = hallTiles.Contains(t + Vector2Int.right);
+
+                if ((up && right) ||
+                    (up && left) ||
+                    (down && right) ||
+                    (down && left))
+                {
+                    toAdd.Add(t);
+                }
+            }
+
+            //if nothing to add, we’re done
+            if (toAdd.Count == 0)
+                break;
+
+            //otherwise add them and loop again
+            foreach (var t in toAdd)
+            {
+                dungeonData.AddDungeonHallTiles(t);
+                paths.SetTile(new Vector3Int(t.x, t.y, 0), floorTile);
+            }
+        }
+    }
+
     //Place kitchen counter:
     public struct WallData
     {
@@ -1928,6 +2130,7 @@ public class ApartmentGenerator : MonoBehaviour
         upBoundary.ClearAllTiles();
         leftBoundary.ClearAllTiles();
         downBoundary.ClearAllTiles();
+        extraHall.ClearAllTiles();
     }
 
     private void AddExtraCollider()

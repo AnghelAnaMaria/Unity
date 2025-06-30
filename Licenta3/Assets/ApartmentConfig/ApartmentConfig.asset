@@ -22,8 +22,12 @@ MonoBehaviour:
   - roomType: 4
     roomDimensions: {x: 4, y: 4}
   - roomType: 3
-    roomDimensions: {x: 4, y: 3}
+    roomDimensions: {x: 4, y: 5}
   - roomType: 1
     roomDimensions: {x: 6, y: 6}
-  includeOpenSpaceKitchen: 0
+  - roomType: 2
+    roomDimensions: {x: 7, y: 6}
+  - roomType: 4
+    roomDimensions: {x: 3, y: 5}
+  includeOpenSpaceKitchen: 1
   includeOpenSpaceLivingRoom: 0

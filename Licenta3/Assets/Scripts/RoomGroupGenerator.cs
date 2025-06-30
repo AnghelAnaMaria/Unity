@@ -36,7 +36,12 @@ public static class RoomGroupGenerator
     {
         new RoomGroupTemplate(new List<RoomType> { RoomType.Dormitor, RoomType.Birou, RoomType.Baie}),
         new RoomGroupTemplate(new List<RoomType> { RoomType.Dormitor, RoomType.Birou, RoomType.Sufragerie}),
-        new RoomGroupTemplate(new List<RoomType> { RoomType.Sufragerie, RoomType.Bucatarie, RoomType.Baie }),
+        new RoomGroupTemplate(new List<RoomType> { RoomType.Sufragerie, RoomType.Dormitor, RoomType.Bucatarie }),
+         new RoomGroupTemplate(new List<RoomType> { RoomType.Dormitor, RoomType.Dormitor, RoomType.Bucatarie }),
+        new RoomGroupTemplate(new List<RoomType> { RoomType.Dormitor, RoomType.Dormitor, RoomType.Birou }),
+        new RoomGroupTemplate(new List<RoomType> { RoomType.Sufragerie, RoomType.Dormitor, RoomType.Dormitor }),
+        new RoomGroupTemplate(new List<RoomType> { RoomType.Baie, RoomType.Sufragerie, RoomType.Bucatarie }),
+        new RoomGroupTemplate(new List<RoomType> { RoomType.Dormitor, RoomType.Dormitor, RoomType.Baie }),
         new RoomGroupTemplate(new List<RoomType> { RoomType.Sufragerie, RoomType.Birou, RoomType.Baie }),
         new RoomGroupTemplate(new List<RoomType> { RoomType.Dormitor, RoomType.Dormitor, RoomType.Baie }),
         new RoomGroupTemplate(new List<RoomType> { RoomType.Dormitor, RoomType.Dormitor, RoomType.Birou }),
