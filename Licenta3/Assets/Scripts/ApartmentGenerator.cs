@@ -4,13 +4,9 @@ using UnityEngine.Events;
 using UnityEngine.Tilemaps;
 using UnityEngine.InputSystem;
 using System;
-using Unity.VisualScripting;
 using System.Linq;
-using UnityEngine.UIElements;
-using System.Text.RegularExpressions;
-using UnityEditor.Experimental.GraphView;
-using Unity.Burst.Intrinsics;
 using System.Data;
+using System.Collections;
 
 
 public class ApartmentGenerator : MonoBehaviour
@@ -34,6 +30,15 @@ public class ApartmentGenerator : MonoBehaviour
     private Vector2Int endBorderDirection;
     private Vector2Int centerA;
     private Vector2Int centerB;
+    public GameObject animatedTilePrefab;
+
+    struct PendingPlacement
+    {
+        public Tilemap map;
+        public Vector3Int cell;
+        public TileBase tile;
+    }
+    private List<PendingPlacement> tilePlacements = new List<PendingPlacement>();
 
 
     private void Awake()
@@ -88,6 +93,8 @@ public class ApartmentGenerator : MonoBehaviour
             return;
         }
 
+        tilePlacements.Clear();
+
         //Clear previous dungeon
         if (dungeonData.GetRooms().Count != 0)
         {
@@ -113,8 +120,40 @@ public class ApartmentGenerator : MonoBehaviour
 
         AdjustCameraToDungeon();
         OnFinishedRoomGenerator?.Invoke();
+        StartCoroutine(AnimatePlacements(0.05f));
 
     }
+
+    private IEnumerator AnimatePlacements(float delayBetween)
+    {
+        var unique = new List<PendingPlacement>();
+        foreach (var p in tilePlacements)
+            unique.Add(p);
+
+
+        foreach (var p in unique)
+        {
+            Vector3 world = p.map.CellToWorld(p.cell) + new Vector3(p.map.cellSize.x, p.map.cellSize.y) * 0.5f;//centrul tile-ului de animat
+
+            //punem prefabul 2 unitati mai sus
+            var go = Instantiate(animatedTilePrefab, world + Vector3.up * 2f, Quaternion.identity);
+
+            //spriteul
+            var sr = go.GetComponent<SpriteRenderer>();
+            sr.sprite = (p.tile as Tile)?.sprite;
+
+            //fall callback
+            var fall = go.GetComponent<AnimatedTileFall>();
+            fall.targetPosition = world;
+            fall.onArrived = () =>
+            {
+                p.map.SetTile(p.cell, p.tile);
+            };
+
+            yield return new WaitForSeconds(delayBetween);
+        }
+    }
+
 
     private void GenerateApartment()
     {
@@ -564,12 +603,24 @@ public class ApartmentGenerator : MonoBehaviour
                 if (roomType == RoomType.Baie)
                 {
                     Vector3Int tilePosition = new Vector3Int(position.x, position.y, 0);
-                    roomMap.SetTile(tilePosition, sandstone);
+                    //roomMap.SetTile(tilePosition, sandstone);
+                    tilePlacements.Add(new PendingPlacement
+                    {
+                        map = roomMap,
+                        cell = tilePosition,
+                        tile = sandstone
+                    });
                 }
                 else
                 {
                     Vector3Int tilePosition = new Vector3Int(position.x, position.y, 0);
-                    roomMap.SetTile(tilePosition, floorTile);
+                    //roomMap.SetTile(tilePosition, floorTile);
+                    tilePlacements.Add(new PendingPlacement
+                    {
+                        map = roomMap,
+                        cell = tilePosition,
+                        tile = floorTile
+                    });
                 }
 
                 //Room tiles:
@@ -641,24 +692,48 @@ public class ApartmentGenerator : MonoBehaviour
                 Vector2Int positionRight = roomCenterPosition + new Vector2Int(half.x + (isOddX ? 1 : 0), y);
                 Vector3Int tilePosition = new Vector3Int(positionRight.x, positionRight.y, 0);
                 dungeonData.AddRightBoundaryWalls(positionRight);
-                rightBoundary.SetTile(tilePosition, rightBoundaryWall);
+                //rightBoundary.SetTile(tilePosition, rightBoundaryWall);
+                tilePlacements.Add(new PendingPlacement
+                {
+                    map = rightBoundary,
+                    cell = tilePosition,
+                    tile = rightBoundaryWall
+                });
 
                 Vector2Int positionLeft = roomCenterPosition + new Vector2Int(-half.x - 1, y);//left boundary
                 Vector3Int tileLeft = new Vector3Int(positionLeft.x, positionLeft.y, 0);
                 dungeonData.AddLeftBoundaryWalls(positionLeft);
-                leftBoundary.SetTile(tileLeft, leftBoundaryWall);
+                //leftBoundary.SetTile(tileLeft, leftBoundaryWall);
+                tilePlacements.Add(new PendingPlacement
+                {
+                    map = leftBoundary,
+                    cell = tileLeft,
+                    tile = leftBoundaryWall
+                });
             }
             for (var x = -half.x; x < half.x + (isOddX ? 1 : 0); x++)//up boundary
             {
                 Vector2Int positionUp = roomCenterPosition + new Vector2Int(x, half.y);
                 Vector3Int tilePosition = new Vector3Int(positionUp.x, positionUp.y, 0);
                 dungeonData.AddUpBoundaryWalls(positionUp);
-                upBoundary.SetTile(tilePosition, upBoundaryWall);
+                //upBoundary.SetTile(tilePosition, upBoundaryWall);
+                tilePlacements.Add(new PendingPlacement
+                {
+                    map = upBoundary,
+                    cell = tilePosition,
+                    tile = upBoundaryWall
+                });
 
                 Vector2Int positionDown = roomCenterPosition + new Vector2Int(x, -half.y - (isOddY ? 1 : 0) - 1);//down boundary
                 Vector3Int tileDown = new Vector3Int(positionDown.x, positionDown.y, 0);
                 dungeonData.AddDownBoundaryWalls(positionDown);
-                downBoundary.SetTile(tileDown, downBoundaryWall);
+                //downBoundary.SetTile(tileDown, downBoundaryWall);
+                tilePlacements.Add(new PendingPlacement
+                {
+                    map = downBoundary,
+                    cell = tileDown,
+                    tile = downBoundaryWall
+                });
             }
         }
         else
@@ -778,7 +853,13 @@ public class ApartmentGenerator : MonoBehaviour
                 dungeonData.AddDungeonHallTiles(pos);
 
                 Vector3Int tilePosition = new Vector3Int(pos.x, pos.y, 0);
-                paths.SetTile(tilePosition, floorTile);
+                //paths.SetTile(tilePosition, floorTile);
+                tilePlacements.Add(new PendingPlacement
+                {
+                    map = paths,
+                    cell = tilePosition,
+                    tile = floorTile
+                });
             }
         }
 
@@ -1017,7 +1098,13 @@ public class ApartmentGenerator : MonoBehaviour
                     hall.AddFloorTiles(tile);
                     dungeonData.AddDungeonHallTiles(tile);
                     Vector3Int tilePosition = new Vector3Int(tile.x, tile.y, 0);
-                    paths.SetTile(tilePosition, floorTile);
+                    //paths.SetTile(tilePosition, floorTile);
+                    tilePlacements.Add(new PendingPlacement
+                    {
+                        map = paths,
+                        cell = tilePosition,
+                        tile = floorTile
+                    });
                 }
             }
 
@@ -1108,7 +1195,13 @@ public class ApartmentGenerator : MonoBehaviour
 
             if ((up && down) || (left && right))
             {
-                paths.SetTile(new Vector3Int(t.x, t.y, 0), floorTile);
+                //paths.SetTile(new Vector3Int(t.x, t.y, 0), floorTile);
+                tilePlacements.Add(new PendingPlacement
+                {
+                    map = paths,
+                    cell = new Vector3Int(t.x, t.y, 0),
+                    tile = floorTile
+                });
                 dungeonData.AddDungeonHallTiles(t);
                 occupied.Add(t);
             }
@@ -1142,7 +1235,13 @@ public class ApartmentGenerator : MonoBehaviour
         // inlaturam efectiv tile-urile din Tilemap si din dungeonData
         foreach (var t in toRemove)
         {
-            paths.SetTile(new Vector3Int(t.x, t.y, 0), null);
+            //paths.SetTile(new Vector3Int(t.x, t.y, 0), null);
+            tilePlacements.Add(new PendingPlacement
+            {
+                map = paths,
+                cell = new Vector3Int(t.x, t.y, 0),
+                tile = null
+            });
             dungeonData.RemoveDungeonHallTile(t);
         }
 
@@ -1236,7 +1335,13 @@ public class ApartmentGenerator : MonoBehaviour
                                 newHall.AddFloorTiles(tile);
                                 dungeonData.AddDungeonHallTiles(tile);
                                 Vector3Int tilePosition = new Vector3Int(tile.x, tile.y, 0);
-                                paths.SetTile(tilePosition, floorTile);
+                                //paths.SetTile(tilePosition, floorTile);
+                                tilePlacements.Add(new PendingPlacement
+                                {
+                                    map = paths,
+                                    cell = tilePosition,
+                                    tile = floorTile
+                                });
                             }
                         }
                         dungeonData.AddHall(newHall);
@@ -1308,28 +1413,52 @@ public class ApartmentGenerator : MonoBehaviour
                     Vector2Int pos = ul + new Vector2Int(-1, 1);
                     dungeonData.AddDungeonHallTiles(pos);
                     Vector3Int tilePosition = new Vector3Int(pos.x, pos.y, 0);
-                    paths.SetTile(tilePosition, floorTile);
+                    //paths.SetTile(tilePosition, floorTile);
+                    tilePlacements.Add(new PendingPlacement
+                    {
+                        map = paths,
+                        cell = tilePosition,
+                        tile = floorTile
+                    });
                 }
                 if (dungeonData.GetDungeonHallTiles().Contains(ur))
                 {
                     Vector2Int pos = ur + new Vector2Int(1, 1);
                     dungeonData.AddDungeonHallTiles(pos);
                     Vector3Int tilePosition = new Vector3Int(pos.x, pos.y, 0);
-                    paths.SetTile(tilePosition, floorTile);
+                    //paths.SetTile(tilePosition, floorTile);
+                    tilePlacements.Add(new PendingPlacement
+                    {
+                        map = paths,
+                        cell = tilePosition,
+                        tile = floorTile
+                    });
                 }
                 if (dungeonData.GetDungeonHallTiles().Contains(dr))
                 {
                     Vector2Int pos = dr + new Vector2Int(1, -1);
                     dungeonData.AddDungeonHallTiles(pos);
                     Vector3Int tilePosition = new Vector3Int(pos.x, pos.y, 0);
-                    paths.SetTile(tilePosition, floorTile);
+                    //paths.SetTile(tilePosition, floorTile);
+                    tilePlacements.Add(new PendingPlacement
+                    {
+                        map = paths,
+                        cell = tilePosition,
+                        tile = floorTile
+                    });
                 }
                 if (dungeonData.GetDungeonHallTiles().Contains(dl))
                 {
                     Vector2Int pos = dl + new Vector2Int(-1, -1);
                     dungeonData.AddDungeonHallTiles(pos);
                     Vector3Int tilePosition = new Vector3Int(pos.x, pos.y, 0);
-                    paths.SetTile(tilePosition, floorTile);
+                    //paths.SetTile(tilePosition, floorTile);
+                    tilePlacements.Add(new PendingPlacement
+                    {
+                        map = paths,
+                        cell = tilePosition,
+                        tile = floorTile
+                    });
                 }
             }
         }
@@ -1605,7 +1734,13 @@ public class ApartmentGenerator : MonoBehaviour
                         dungeonData.AddDungeonHallTiles(newPosition);
 
                         Vector3Int tilePosition = new Vector3Int(newPosition.x, newPosition.y, 0);
-                        paths.SetTile(tilePosition, floorTile);
+                        //paths.SetTile(tilePosition, floorTile);
+                        tilePlacements.Add(new PendingPlacement
+                        {
+                            map = paths,
+                            cell = tilePosition,
+                            tile = floorTile
+                        });
                     }
                 }
             }
@@ -1623,7 +1758,13 @@ public class ApartmentGenerator : MonoBehaviour
                         dungeonData.AddDungeonHallTiles(newPosition);
 
                         Vector3Int tilePosition = new Vector3Int(newPosition.x, newPosition.y, 0);
-                        paths.SetTile(tilePosition, floorTile);
+                        //paths.SetTile(tilePosition, floorTile);
+                        tilePlacements.Add(new PendingPlacement
+                        {
+                            map = paths,
+                            cell = tilePosition,
+                            tile = floorTile
+                        });
                     }
                 }
             }
@@ -1729,7 +1870,13 @@ public class ApartmentGenerator : MonoBehaviour
                         newHall.AddFloorTiles(tile);
                         dungeonData.AddDungeonHallTiles(tile);
                         Vector3Int tilePosition = new Vector3Int(tile.x, tile.y, 0);
-                        paths.SetTile(tilePosition, floorTile);
+                        //paths.SetTile(tilePosition, floorTile);
+                        tilePlacements.Add(new PendingPlacement
+                        {
+                            map = paths,
+                            cell = tilePosition,
+                            tile = floorTile
+                        });
                     }
                 }
                 dungeonData.AddHall(newHall);
@@ -1819,7 +1966,13 @@ public class ApartmentGenerator : MonoBehaviour
                         }
                         if (!dungeonData.GetDungeonHallTiles().Contains(t))// daca patratica e goala punem parcela de hol
                         {
-                            paths.SetTile((Vector3Int)t, floorTile);
+                            //paths.SetTile((Vector3Int)t, floorTile);
+                            tilePlacements.Add(new PendingPlacement
+                            {
+                                map = paths,
+                                cell = (Vector3Int)t,
+                                tile = floorTile
+                            });
                             dungeonData.AddDungeonHallTiles(t);
                         }
                     }
@@ -1841,7 +1994,13 @@ public class ApartmentGenerator : MonoBehaviour
                         }
                         if (!dungeonData.GetDungeonHallTiles().Contains(t))
                         {
-                            paths.SetTile((Vector3Int)t, floorTile);
+                            //paths.SetTile((Vector3Int)t, floorTile);
+                            tilePlacements.Add(new PendingPlacement
+                            {
+                                map = paths,
+                                cell = (Vector3Int)t,
+                                tile = floorTile
+                            });
                             dungeonData.AddDungeonHallTiles(t);
                         }
                     }
@@ -1863,7 +2022,13 @@ public class ApartmentGenerator : MonoBehaviour
                         }
                         if (!dungeonData.GetDungeonHallTiles().Contains(t))
                         {
-                            paths.SetTile((Vector3Int)t, floorTile);
+                            //paths.SetTile((Vector3Int)t, floorTile);
+                            tilePlacements.Add(new PendingPlacement
+                            {
+                                map = paths,
+                                cell = (Vector3Int)t,
+                                tile = floorTile
+                            });
                             dungeonData.AddDungeonHallTiles(t);
                         }
                     }
@@ -1885,7 +2050,13 @@ public class ApartmentGenerator : MonoBehaviour
                         }
                         if (!dungeonData.GetDungeonHallTiles().Contains(t))
                         {
-                            paths.SetTile((Vector3Int)t, floorTile);
+                            //paths.SetTile((Vector3Int)t, floorTile);
+                            tilePlacements.Add(new PendingPlacement
+                            {
+                                map = paths,
+                                cell = (Vector3Int)t,
+                                tile = floorTile
+                            });
                             dungeonData.AddDungeonHallTiles(t);
                         }
                     }
@@ -2106,14 +2277,28 @@ public class ApartmentGenerator : MonoBehaviour
             foreach (Vector2Int tile in wallData.Tiles)
             {
                 Vector3Int tilePosition = new Vector3Int(tile.x, tile.y, 0);
-                objects.SetTile(tilePosition, counter);
+                //objects.SetTile(tilePosition, counter);
+                tilePlacements.Add(new PendingPlacement
+                {
+                    map = objects,
+                    cell = tilePosition,
+                    tile = counter
+                });
+
                 // Aplicăm transformarea pentru rotație
                 objects.SetTransformMatrix(tilePosition, transformMatrix);
             }
 
             Vector2Int sinkPosition = new Vector2Int(wallData.Tiles[wallData.Tiles.Count - 2].x, wallData.Tiles[wallData.Tiles.Count - 2].y);
             Vector3Int pos = new Vector3Int(sinkPosition.x, sinkPosition.y, 0);
-            overObjects.SetTile(pos, sink);
+            //overObjects.SetTile(pos, sink);
+            tilePlacements.Add(new PendingPlacement
+            {
+                map = overObjects,
+                cell = pos,
+                tile = sink
+            });
+
             // Aplicăm transformarea pentru rotație
             overObjects.SetTransformMatrix(pos, transformMatrix);
         }
@@ -2170,7 +2355,13 @@ public class ApartmentGenerator : MonoBehaviour
         foreach (Vector2Int pos in dungeonData.GetColliderTiles())
         {
             Vector3Int scaledPosition = new Vector3Int(pos.x, pos.y, 0);
-            colliderMap.SetTile(scaledPosition, colliderTile);
+            //colliderMap.SetTile(scaledPosition, colliderTile);
+            tilePlacements.Add(new PendingPlacement
+            {
+                map = colliderMap,
+                cell = scaledPosition,
+                tile = colliderTile
+            });
         }
     }
 
@@ -2192,40 +2383,64 @@ public class ApartmentGenerator : MonoBehaviour
             if (dungeonData.VerifyDungeonRoomTile(leftWallTile) == false)
             {
                 dungeonData.AddDungeonLeftWallTiles(leftWallTile);
-                //leftWalls.SetTile((Vector3Int)leftWallTile, leftWall);
                 if (IsRoomTileWithoutHallNeighbor(leftWallTile))
-                    leftWalls.SetTile(new Vector3Int(leftWallTile.x, leftWallTile.y, 0), leftWall);
-
+                {
+                    //leftWalls.SetTile(new Vector3Int(leftWallTile.x, leftWallTile.y, 0), leftWall);
+                    tilePlacements.Add(new PendingPlacement
+                    {
+                        map = leftWalls,
+                        cell = new Vector3Int(leftWallTile.x, leftWallTile.y, 0),
+                        tile = leftWall
+                    });
+                }
             }
 
             Vector2Int rightWallTile = posRoom + Vector2Int.right;//right wall all tiles
             if (dungeonData.VerifyDungeonRoomTile(rightWallTile) == false)
             {
                 dungeonData.AddDungeonRightWallTiles(rightWallTile);
-                //rightWalls.SetTile((Vector3Int)rightWallTile, rightWall);
                 if (IsRoomTileWithoutHallNeighbor(rightWallTile))
-                    rightWalls.SetTile(new Vector3Int(rightWallTile.x, rightWallTile.y, 0), rightWall);
-
+                {
+                    //rightWalls.SetTile(new Vector3Int(rightWallTile.x, rightWallTile.y, 0), rightWall);
+                    tilePlacements.Add(new PendingPlacement
+                    {
+                        map = rightWalls,
+                        cell = new Vector3Int(rightWallTile.x, rightWallTile.y, 0),
+                        tile = rightWall
+                    });
+                }
             }
 
             Vector2Int upWallTile = posRoom + Vector2Int.up;//up wall all tiles
             if (dungeonData.VerifyDungeonRoomTile(upWallTile) == false)
             {
                 dungeonData.AddDungeonUpWallTiles(upWallTile);
-                //upWalls.SetTile((Vector3Int)upWallTile, upWall);
                 if (IsRoomTileWithoutHallNeighbor(upWallTile))
-                    upWalls.SetTile(new Vector3Int(upWallTile.x, upWallTile.y, 0), upWall);
-
+                {
+                    //upWalls.SetTile(new Vector3Int(upWallTile.x, upWallTile.y, 0), upWall);
+                    tilePlacements.Add(new PendingPlacement
+                    {
+                        map = upWalls,
+                        cell = new Vector3Int(upWallTile.x, upWallTile.y, 0),
+                        tile = upWall
+                    });
+                }
             }
 
             Vector2Int downWallTile = posRoom + Vector2Int.down;//down wall all tiles
             if (dungeonData.VerifyDungeonRoomTile(downWallTile) == false)
             {
                 dungeonData.AddDungeonDownWallTiles(downWallTile);
-                //downWalls.SetTile((Vector3Int)downWallTile, downWall);
                 if (IsRoomTileWithoutHallNeighbor(downWallTile))
-                    downWalls.SetTile(new Vector3Int(downWallTile.x, downWallTile.y, 0), downWall);
-
+                {
+                    //downWalls.SetTile(new Vector3Int(downWallTile.x, downWallTile.y, 0), downWall);
+                    tilePlacements.Add(new PendingPlacement
+                    {
+                        map = downWalls,
+                        cell = new Vector3Int(downWallTile.x, downWallTile.y, 0),
+                        tile = downWall
+                    });
+                }
             }
         }
     }

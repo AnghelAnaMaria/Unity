@@ -84,10 +84,10 @@ namespace WaveFunctionCollapse
 
         public IEnumerator AnimateOrderedOutput(List<Vector2Int> collapseOrder, int[][] patternIndices, PatternManager manager, InputManager<TileBase> valueManager, GameObject animatedTilePrefab, float delayBetween = 0.05f)
         {
-            outputImage.ClearAllTiles();// stergem ce e desenat
+            outputImage.ClearAllTiles();
             int[][] valueGrid = manager.ConvertPatternsToValues<UnityEngine.Tilemaps.TileBase>(patternIndices);//convertim rezultatul WFC la int[][] ce reprezinta tiles
 
-            // 2) Creăm o listă unică de poziții, păstrând ordinea primei colapsări
+            //Creăm o listă unică de poziții, păstrând ordinea primei colapsări
             var seen = new HashSet<Vector2Int>();
             var uniqueOrder = new List<Vector2Int>();
             foreach (var pos in collapseOrder)
@@ -98,7 +98,6 @@ namespace WaveFunctionCollapse
 
             foreach (var pos in uniqueOrder)
             {
-
                 int valueIndex = valueGrid[pos.y][pos.x];
                 var tb = (TileBase)valueManager.GetValueFromIndex(valueIndex).value;
                 if (tb == null)
@@ -107,21 +106,21 @@ namespace WaveFunctionCollapse
                 Vector3Int cell = new Vector3Int(pos.x, pos.y, 0);//coltul celulei de start animatie
                 Vector3 targetWorld = outputImage.CellToWorld(cell) + new Vector3(0.5f, 0.5f, 0);//centrul celulei de start animatie
 
-                // instanțiem prefab-ul de cădere
+                //instanțiem prefab-ul de cădere
                 var go = GameObject.Instantiate(animatedTilePrefab, targetWorld + Vector3.up * 2f, Quaternion.identity);
 
-                // setăm sprite-ul corect
+                //setăm sprite-ul corect
                 go.GetComponent<SpriteRenderer>().sprite = (tb as Tile)?.sprite;
 
-                // configurăm AnimatedTileFall
+                //configurăm AnimatedTileFall
                 var fall = go.GetComponent<AnimatedTileFall>();//componenta care știe să animeze o cădere
                 fall.targetPosition = targetWorld;
                 fall.onArrived = () =>
                 {
-                    outputImage.SetTile(cell, tb);// abia la sfârșitul animației plasăm Tile-ul
+                    outputImage.SetTile(cell, tb);//abia la sfârșitul animației plasăm Tile-ul
                 };
 
-                // Pauză între tile-uri
+                //Pauză între tile-uri
                 yield return new WaitForSeconds(delayBetween);
             }
         }

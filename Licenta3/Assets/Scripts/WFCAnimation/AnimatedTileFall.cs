@@ -14,7 +14,7 @@ public class AnimatedTileFall : MonoBehaviour
         sr = GetComponent<SpriteRenderer>();
         if (sr == null)
         {
-            Debug.LogError("NU AI SpriteRenderer pe animatedTilePrefab!");
+            Debug.LogError("NU ai SpriteRenderer pe animatedTilePrefab!");
             Destroy(gameObject);
             return;
         }

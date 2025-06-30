@@ -457,6 +457,7 @@ MonoBehaviour:
         m_CallState: 2
   dungeonData: {fileID: 1312564748}
   apartmentConfig: {fileID: 11400000, guid: 6918967fd45fb43429abb539c604ca05, type: 2}
+  animatedTilePrefab: {fileID: 4134184210745417848, guid: 0a94aa33095989a4a8b689bf681ca438, type: 3}
 --- !u!4 &160309628
 Transform:
   m_ObjectHideFlags: 0
@@ -2622,7 +2623,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1282803920}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 19102, guid: 0000000000000000e000000000000000, type: 0}
   m_Name: 
@@ -2653,7 +2654,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1282803920}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ac21c3b9c2446be459d703a25c9ab34e, type: 3}
   m_Name: 
@@ -4939,8 +4940,8 @@ SceneRoots:
   - {fileID: 1538632534}
   - {fileID: 1613841954}
   - {fileID: 2133371265}
+  - {fileID: 1536285566}
   - {fileID: 1282803922}
   - {fileID: 1513388888}
   - {fileID: 41847578}
   - {fileID: 5438011}
-  - {fileID: 1536285566}

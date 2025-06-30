@@ -15,6 +15,9 @@ MonoImporter:
   - leftBoundary: {instanceID: 0}
   - downBoundary: {instanceID: 0}
   - paths: {instanceID: 0}
+  - objects: {instanceID: 0}
+  - overObjects: {instanceID: 0}
+  - extraHall: {instanceID: 0}
   - floorTile: {fileID: 11400000, guid: 0c1ebed7f29ce3c42bdba2cf497523be, type: 2}
   - colliderTile: {fileID: 11400000, guid: 630c22b5fe7f60348ae51c55de2d7ebc, type: 2}
   - sandstone: {fileID: 11400000, guid: 8450a1e0cef904541bc26e0044256eb5, type: 2}
@@ -31,6 +34,7 @@ MonoImporter:
   - generate: {fileID: -7250344737315704751, guid: 67f06e7f5f30a634091ec022e0e61f81, type: 3}
   - dungeonData: {instanceID: 0}
   - apartmentConfig: {fileID: 11400000, guid: 6918967fd45fb43429abb539c604ca05, type: 2}
+  - animatedTilePrefab: {fileID: 4134184210745417848, guid: 0a94aa33095989a4a8b689bf681ca438, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

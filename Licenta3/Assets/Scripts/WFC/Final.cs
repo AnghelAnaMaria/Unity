@@ -12,7 +12,6 @@ using System.Linq;
 public class Final : MonoBehaviour
 {
     [Header("References")]
-    //public Tilemap inputTilemap;
     public Tilemap inputTilemap;
     public Tilemap outputTilemap;
 
@@ -31,7 +30,7 @@ public class Final : MonoBehaviour
     public int gridWidth = 24;
     public int gridHeight = 24;
 
-    //InputManager<UnityEngine.Tilemaps.TileBase> inputManager;//grila de int[][]
+
     public InputManager<UnityEngine.Tilemaps.TileBase> inputManager { get; private set; }
     public GameObject animatedTilePrefab;
     WFC core;//colapsam patterns
@@ -53,43 +52,43 @@ public class Final : MonoBehaviour
     }
 
 
-    void Start()
-    {
-        CreateWFC();
-        CreateLargeTilemap();
-
-        // CreateTilemap();
-
-    }
-    // private IEnumerator Start()//corutina
+    // void Start()
     // {
+    //     // CreateWFC();
+    //     // CreateLargeTilemap();
 
-    //     CreateWFC();
-    //     int[][] result = core.CreateOutputGrid();
-    //     output = new TilemapOutput(inputManager, outputTilemap);
+    //     // // CreateTilemap();
 
-    //     var ordered = core.CollapseOrder;
-
-    //     if (result.Length == 0)
-    //     {
-    //         output.CreatePartialOutput(patternManager, core.OutputGrid, errorTile: null, pendingTile: null);
-    //         yield break;
-    //     }
-    //     else
-    //     {
-    //         //Call animation
-    //         yield return StartCoroutine(
-    //             output.AnimateOrderedOutput(
-    //                 ordered,      // lista de poziţii în ordinea colapsării
-    //                 result,                  // grila finală int[][] de pattern-uri
-    //                 patternManager,          // ca să convertim pattern → value
-    //                 inputManager,            // ca să convertim value → TileBase
-    //                 animatedTilePrefab,      // prefab‐ul cu AnimatedTileFall + SpriteRenderer
-    //                 0.05f                    // întârzierea între două căderi
-    //             )
-    //         );
-    //     }
     // }
+    private IEnumerator Start()//corutina
+    {
+
+        CreateWFC();
+        int[][] result = core.CreateOutputGrid();
+        output = new TilemapOutput(inputManager, outputTilemap);
+
+        var ordered = core.CollapseOrder;//lista cu ordinea in care colapsam pentru animatie
+
+        if (result.Length == 0)
+        {
+            output.CreatePartialOutput(patternManager, core.OutputGrid, errorTile: null, pendingTile: null);
+            yield break;
+        }
+        else
+        {
+            //Call animation
+            yield return StartCoroutine(
+                output.AnimateOrderedOutput(
+                    ordered,      // lista de poziţii în ordinea colapsării
+                    result,                  // grila finală int[][] de pattern-uri
+                    patternManager,          // ca să convertim pattern → value
+                    inputManager,            // ca să convertim value → TileBase
+                    animatedTilePrefab,      // prefab‐ul cu AnimatedTileFall + SpriteRenderer
+                    0.05f                    // întârzierea între două căderi
+                )
+            );
+        }
+    }
 
     public void CreateWFC()
     {
