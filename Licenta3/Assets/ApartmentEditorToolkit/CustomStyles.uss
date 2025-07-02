@@ -71,3 +71,14 @@
 #LivingRoomOpenSpaceToggle VisualElement {
     flex-direction: row-reverse;
 }
+
+#RoomsScroll {
+    flex-grow: 0;
+    max-height: 600px;
+    flex-shrink: 1;
+}
+
+#Container {
+    flex-direction: column;
+    justify-content: flex-start;
+}

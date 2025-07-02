@@ -11,7 +11,7 @@ namespace WaveFunctionCollapse
 {
     public class OutputGrid
     {//Stadiul pt fiecare celula (ce patterns pot sta pe fiecare celula)
-        private Dictionary<int, HashSet<int>> indexPossiblePatternDictionary;//(index liniar al unei celule din grid, indexi ale patterns ce pot sta in celula);           index liniar = x + width * y
+        private Dictionary<int, HashSet<int>> indexPossiblePatternDictionary;//(index liniar al unei celule din grid, indexi ale patterns ce pot sta in celula);        index liniar = x + width * y
         public int width { get; }//dimensiune grid final(output)
         public int height { get; }//dimensiune grid final(output)
         private int maxNumberOfPatterns = 0;//nr de pattern-uri distincte din gridul final
@@ -180,7 +180,6 @@ namespace WaveFunctionCollapse
             int index = GetIndexFromCoordinates(new Vector2Int(x, y));
             indexPossiblePatternDictionary[index] = new HashSet<int>(patterns);
         }
-
 
     }
 }

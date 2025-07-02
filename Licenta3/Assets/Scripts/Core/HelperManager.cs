@@ -10,15 +10,17 @@ namespace WaveFunctionCollapse
     {
         float totalFrequency = 0;
         float totalFrequencyLog = 0;
-        PatternManager patternManager;
+        PatternManager patternManager;//patterns
+        Dictionary<Vector2Int, HashSet<int>> softBanned;
 
         //Metode:
-        public HelperManager(PatternManager patternManager)
+        public HelperManager(PatternManager patternManager, Dictionary<Vector2Int, HashSet<int>> softBanned)
         {
             this.patternManager = patternManager;
+            this.softBanned = softBanned;
         }
 
-        public int SelectSolutionPatternFromFrequency(List<int> possibleValues, Vector2Int position, Dictionary<Vector2Int, HashSet<int>> softBanned, float epsilon = 0.01f)//possibleValues= lista de patterns posibile valide pt o celula din Tilemap
+        public int SelectSolutionPatternFromFrequency(List<int> possibleValues, Vector2Int position, float epsilon = 0.01f)//possibleValues= lista de patterns posibile valide pt o celula din Tilemap
         {
             List<float> weights = GetListOfWeightsFromIndices(possibleValues);//lista de greutăți (frecvențe relative) pentru fiecare pattern
 

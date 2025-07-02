@@ -14,7 +14,7 @@ public class ApartmentGenerator : MonoBehaviour
 
     [SerializeField] private Tilemap roomMap, colliderMap, leftWalls, rightWalls, upWalls, downWalls, rightBoundary, upBoundary, leftBoundary, downBoundary, paths, objects, overObjects, extraHall;
 
-    [SerializeField] private TileBase floorTile, colliderTile, sandstone, leftWall, rightWall, upWall, downWall, rightBoundaryWall, upBoundaryWall, leftBoundaryWall, downBoundaryWall, counter, sink;
+    [SerializeField] private TileBase floorTile, colliderTile, sandstone, leftWall, rightWall, upWall, downWall, rightBoundaryWall, upBoundaryWall, leftBoundaryWall, downBoundaryWall, counter, sink, sinkDr, sinkSt, sinkJos, counterDr, counterSt, counterJos;
 
     [SerializeField] private InputActionReference generate;
 
@@ -39,6 +39,8 @@ public class ApartmentGenerator : MonoBehaviour
         public TileBase tile;
     }
     private List<PendingPlacement> tilePlacements = new List<PendingPlacement>();
+    [SerializeField] private Sprite skipSprite;
+    [SerializeField] private Tilemap skipTilemap;
 
 
     private void Awake()
@@ -130,9 +132,21 @@ public class ApartmentGenerator : MonoBehaviour
         foreach (var p in tilePlacements)
             unique.Add(p);
 
-
         foreach (var p in unique)
         {
+            var cell = p.cell;
+            var tile = p.tile as Tile;
+            var sprite = tile?.sprite;
+
+            // if this is the sprite we want to skip duplicates of…
+            if (sprite == skipSprite)
+            {
+                // try to add to our hash; if it was already there, continue
+                if (skipTilemap.GetTile(p.cell) != null)
+                    continue;
+            }
+
+
             Vector3 world = p.map.CellToWorld(p.cell) + new Vector3(p.map.cellSize.x, p.map.cellSize.y) * 0.5f;//centrul tile-ului de animat
 
             //punem prefabul 2 unitati mai sus
@@ -847,7 +861,7 @@ public class ApartmentGenerator : MonoBehaviour
         List<Vector2Int> thickCorridor = ExpandCorridorThickness(path, dungeonData.GetDungeonRoomTiles(), dungeonData.GetDungeonHallTiles());
         foreach (Vector2Int pos in thickCorridor)
         {
-            if (!dungeonData.GetDungeonHallTiles().Contains(pos))
+            if (!dungeonData.GetDungeonHallTiles().Contains(pos) && !dungeonData.GetDungeonRoomTiles().Contains(pos))
             {
                 hall.AddFloorTiles(pos);
                 dungeonData.AddDungeonHallTiles(pos);
@@ -1093,7 +1107,7 @@ public class ApartmentGenerator : MonoBehaviour
             //Hall
             foreach (var tile in thickCorridor)
             {
-                if (!dungeonData.GetDungeonHallTiles().Contains(tile))
+                if (!dungeonData.GetDungeonHallTiles().Contains(tile) && !dungeonData.GetDungeonRoomTiles().Contains(tile))
                 {
                     hall.AddFloorTiles(tile);
                     dungeonData.AddDungeonHallTiles(tile);
@@ -1183,7 +1197,8 @@ public class ApartmentGenerator : MonoBehaviour
 
         foreach (var h in hallTiles)
             foreach (var d in dirs)
-                candidates.Add(h + d);// candidati sunt tiles de langa Hall
+                if (!roomTiles.Contains(h + d))
+                    candidates.Add(h + d);// candidati sunt tiles de langa Hall
 
         // pentru fiecare candidat, testăm sus+jos sau stanga+dreapta
         foreach (var t in candidates)
@@ -1408,7 +1423,7 @@ public class ApartmentGenerator : MonoBehaviour
                 Vector2Int dr = down.Intersect(right).FirstOrDefault() + new Vector2Int(1, -1);
                 Vector2Int dl = down.Intersect(left).FirstOrDefault() + new Vector2Int(-1, -1);
 
-                if (dungeonData.GetDungeonHallTiles().Contains(ul))
+                if (dungeonData.GetDungeonHallTiles().Contains(ul) && !dungeonData.GetDungeonHallTiles().Contains(ul + new Vector2Int(-1, 1)) && !dungeonData.GetDungeonRoomTiles().Contains(ul + new Vector2Int(-1, 1)))
                 {
                     Vector2Int pos = ul + new Vector2Int(-1, 1);
                     dungeonData.AddDungeonHallTiles(pos);
@@ -1421,7 +1436,7 @@ public class ApartmentGenerator : MonoBehaviour
                         tile = floorTile
                     });
                 }
-                if (dungeonData.GetDungeonHallTiles().Contains(ur))
+                if (dungeonData.GetDungeonHallTiles().Contains(ur) && !dungeonData.GetDungeonHallTiles().Contains(ur + new Vector2Int(1, 1)) && !dungeonData.GetDungeonRoomTiles().Contains(ur + new Vector2Int(1, 1)))
                 {
                     Vector2Int pos = ur + new Vector2Int(1, 1);
                     dungeonData.AddDungeonHallTiles(pos);
@@ -1434,7 +1449,7 @@ public class ApartmentGenerator : MonoBehaviour
                         tile = floorTile
                     });
                 }
-                if (dungeonData.GetDungeonHallTiles().Contains(dr))
+                if (dungeonData.GetDungeonHallTiles().Contains(dr) && !dungeonData.GetDungeonHallTiles().Contains(dr + new Vector2Int(1, -1)) && !dungeonData.GetDungeonRoomTiles().Contains(dr + new Vector2Int(1, -1)))
                 {
                     Vector2Int pos = dr + new Vector2Int(1, -1);
                     dungeonData.AddDungeonHallTiles(pos);
@@ -1447,7 +1462,7 @@ public class ApartmentGenerator : MonoBehaviour
                         tile = floorTile
                     });
                 }
-                if (dungeonData.GetDungeonHallTiles().Contains(dl))
+                if (dungeonData.GetDungeonHallTiles().Contains(dl) && !dungeonData.GetDungeonHallTiles().Contains(dl + new Vector2Int(-1, -1)) && !dungeonData.GetDungeonRoomTiles().Contains(dl + new Vector2Int(-1, -1)))
                 {
                     Vector2Int pos = dl + new Vector2Int(-1, -1);
                     dungeonData.AddDungeonHallTiles(pos);
@@ -1890,10 +1905,7 @@ public class ApartmentGenerator : MonoBehaviour
     }
 
 
-    public static List<Vector2Int> ExpandCorridorThickness(
-    List<Vector2Int> corridor,
-    IEnumerable<Vector2Int> roomTilesEnumerable,
-    IEnumerable<Vector2Int> hallTilesEnumerable)
+    public static List<Vector2Int> ExpandCorridorThickness(List<Vector2Int> corridor, IEnumerable<Vector2Int> roomTilesEnumerable, IEnumerable<Vector2Int> hallTilesEnumerable)
     {
         var roomTiles = new HashSet<Vector2Int>(roomTilesEnumerable);
         var hallTiles = new HashSet<Vector2Int>(hallTilesEnumerable);
@@ -2276,31 +2288,126 @@ public class ApartmentGenerator : MonoBehaviour
 
             foreach (Vector2Int tile in wallData.Tiles)
             {
-                Vector3Int tilePosition = new Vector3Int(tile.x, tile.y, 0);
-                //objects.SetTile(tilePosition, counter);
+                if (angle == 0f)
+                {
+                    Vector3Int tilePosition = new Vector3Int(tile.x, tile.y, 0);
+                    //objects.SetTile(tilePosition, counter);
+                    tilePlacements.Add(new PendingPlacement
+                    {
+                        map = objects,
+                        cell = tilePosition,
+                        tile = counter
+                    });
+
+                    // Aplicăm transformarea pentru rotație
+                    objects.SetTransformMatrix(tilePosition, transformMatrix);
+                }
+                if (angle == -90f)
+                {
+                    Vector3Int tilePosition = new Vector3Int(tile.x, tile.y, 0);
+                    //objects.SetTile(tilePosition, counter);
+                    tilePlacements.Add(new PendingPlacement
+                    {
+                        map = objects,
+                        cell = tilePosition,
+                        tile = counterDr
+                    });
+
+                    // Aplicăm transformarea pentru rotație
+                    objects.SetTransformMatrix(tilePosition, transformMatrix);
+                }
+                if (angle == 90f)
+                {
+                    Vector3Int tilePosition = new Vector3Int(tile.x, tile.y, 0);
+                    //objects.SetTile(tilePosition, counter);
+                    tilePlacements.Add(new PendingPlacement
+                    {
+                        map = objects,
+                        cell = tilePosition,
+                        tile = counterSt
+                    });
+
+                    // Aplicăm transformarea pentru rotație
+                    objects.SetTransformMatrix(tilePosition, transformMatrix);
+                }
+                if (angle == 180f)
+                {
+                    Vector3Int tilePosition = new Vector3Int(tile.x, tile.y, 0);
+                    //objects.SetTile(tilePosition, counter);
+                    tilePlacements.Add(new PendingPlacement
+                    {
+                        map = objects,
+                        cell = tilePosition,
+                        tile = counterJos
+                    });
+
+                    // Aplicăm transformarea pentru rotație
+                    objects.SetTransformMatrix(tilePosition, transformMatrix);
+                }
+
+            }
+
+            if (angle == 0f)
+            {
+                Vector2Int sinkPosition = new Vector2Int(wallData.Tiles[wallData.Tiles.Count - 2].x, wallData.Tiles[wallData.Tiles.Count - 2].y);
+                Vector3Int pos = new Vector3Int(sinkPosition.x, sinkPosition.y, 0);
+                //overObjects.SetTile(pos, sink);
                 tilePlacements.Add(new PendingPlacement
                 {
-                    map = objects,
-                    cell = tilePosition,
-                    tile = counter
+                    map = overObjects,
+                    cell = pos,
+                    tile = sink
                 });
 
                 // Aplicăm transformarea pentru rotație
-                objects.SetTransformMatrix(tilePosition, transformMatrix);
+                overObjects.SetTransformMatrix(pos, transformMatrix);
+            }
+            if (angle == -90f)
+            {
+                Vector2Int sinkPosition = new Vector2Int(wallData.Tiles[wallData.Tiles.Count - 2].x, wallData.Tiles[wallData.Tiles.Count - 2].y);
+                Vector3Int pos = new Vector3Int(sinkPosition.x, sinkPosition.y, 0);
+                //overObjects.SetTile(pos, sink);
+                tilePlacements.Add(new PendingPlacement
+                {
+                    map = overObjects,
+                    cell = pos,
+                    tile = sinkDr
+                });
+
+                // Aplicăm transformarea pentru rotație
+                overObjects.SetTransformMatrix(pos, transformMatrix);
+            }
+            if (angle == 90f)
+            {
+                Vector2Int sinkPosition = new Vector2Int(wallData.Tiles[wallData.Tiles.Count - 2].x, wallData.Tiles[wallData.Tiles.Count - 2].y);
+                Vector3Int pos = new Vector3Int(sinkPosition.x, sinkPosition.y, 0);
+                //overObjects.SetTile(pos, sink);
+                tilePlacements.Add(new PendingPlacement
+                {
+                    map = overObjects,
+                    cell = pos,
+                    tile = sinkSt
+                });
+
+                // Aplicăm transformarea pentru rotație
+                overObjects.SetTransformMatrix(pos, transformMatrix);
+            }
+            if (angle == 180f)
+            {
+                Vector2Int sinkPosition = new Vector2Int(wallData.Tiles[wallData.Tiles.Count - 2].x, wallData.Tiles[wallData.Tiles.Count - 2].y);
+                Vector3Int pos = new Vector3Int(sinkPosition.x, sinkPosition.y, 0);
+                //overObjects.SetTile(pos, sink);
+                tilePlacements.Add(new PendingPlacement
+                {
+                    map = overObjects,
+                    cell = pos,
+                    tile = sinkJos
+                });
+
+                // Aplicăm transformarea pentru rotație
+                overObjects.SetTransformMatrix(pos, transformMatrix);
             }
 
-            Vector2Int sinkPosition = new Vector2Int(wallData.Tiles[wallData.Tiles.Count - 2].x, wallData.Tiles[wallData.Tiles.Count - 2].y);
-            Vector3Int pos = new Vector3Int(sinkPosition.x, sinkPosition.y, 0);
-            //overObjects.SetTile(pos, sink);
-            tilePlacements.Add(new PendingPlacement
-            {
-                map = overObjects,
-                cell = pos,
-                tile = sink
-            });
-
-            // Aplicăm transformarea pentru rotație
-            overObjects.SetTransformMatrix(pos, transformMatrix);
         }
     }
 

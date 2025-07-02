@@ -12,12 +12,12 @@ namespace WaveFunctionCollapse
  //clasa responsabilă de scanarea grilei de indici (produsă de ValuesManager) si de extragerea pattern-urile unice, de indexarea pattern-urilor, de calcularea frecvenţele lor şi, apoi, de generarea regulilor de vecinătate.
     public class FindPatterns
     {
-        internal static PatternResults GetPatternDataFromGrid<T>(InputManager<T> valuesManager, int patternSize, bool equalWeights)//internal este un modificator de acces care înseamnă „vizibil doar în acest assembly”. 
+        internal static PatternResults GetPatternDataFromGrid<T>(InputManager<T> inputManager, int patternSize, bool equalWeights)//internal este un modificator de acces care înseamnă „vizibil doar în acest assembly”. 
         { //                                                                      ||                      ||
           //                                                              gridul de int[][] din scena      N
             Dictionary<string, PatternData> patternHashcodeDictionary = new Dictionary<string, PatternData>();//aici salvam hash-uri pt. subgrilele de NxN de int din gridul din scena
             Dictionary<int, PatternData> patternIndexDictionary = new Dictionary<int, PatternData>();
-            Vector2 sizeOfGrid = valuesManager.GetGridSize();//dimensiunea gridului de int[][] din scena
+            Vector2 sizeOfGrid = inputManager.GetGridSize();//dimensiunea gridului de int[][] din scena
             int patternGridSizeX = 0, patternGridSizeY = 0;//dimensiunea matricei de int(indexi de patterns)
             int rowMin = -1, colMin = -1, rowMax = -1, colMax = -1;
 
@@ -51,7 +51,7 @@ namespace WaveFunctionCollapse
                 for (int col = colMin; col < colMax; col++)
                 {
                     // 1) extrag sub-grila N×N pornind de la celula (col,row) care este coltul ferestrei NxN
-                    int[][] gridValues = valuesManager.GetPatternValuesFromGridAt(col, row, patternSize);
+                    int[][] gridValues = inputManager.GetPatternValuesFromGridAt(col, row, patternSize);
                     // 2) calculez hash-ul pattern-ului
                     string hashValue = Hash.CalculateHashCode(gridValues);
 

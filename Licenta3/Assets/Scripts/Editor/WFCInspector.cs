@@ -28,9 +28,9 @@ public class WFCInspector : Editor//în locul inspectorului default vom folosi c
 
         //Desenează un buton în Inspector cu eticheta “Save tilemap”:
         //Cand este apasat, invoca o metoda din scriptul Test: -SaveTilemap()
-        if (GUILayout.Button("Save tilemap"))
-        {
-            myScript.SaveTilemap();
-        }
+        // if (GUILayout.Button("Save tilemap"))
+        // {
+        //     myScript.SaveTilemap();
+        // }
     }
 }

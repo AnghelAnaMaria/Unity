@@ -16,7 +16,7 @@ namespace WaveFunctionCollapse
 
     public class SolverManager
     {
-        PatternManager patternManager;//rezultatul= grila de int care reprezinta grila finala de Tiles
+        PatternManager patternManager;//patterns
         OutputGrid outputGrid;//starea curenta a WFC (multimea de pattern-uri inca posibile pt fiecare celula)
         HelperManager coreHelper;//evalueaza entropia, genereaza vecinii, detecteaza coliziunile in timpul propagarii
         Propagation propagationHelper;//logica pt VectorPair
@@ -35,7 +35,7 @@ namespace WaveFunctionCollapse
             this.patternManager = patternManager;
             this.maxBacktrackSteps = maxBacktrackSteps;
             this.middlePatterns = middlePatterns;
-            this.coreHelper = new HelperManager(this.patternManager);
+            this.coreHelper = new HelperManager(this.patternManager, softBanned);
             this.softBanned = softBanned;
             this.propagationHelper = new Propagation(this.outputGrid, this.coreHelper);
         }
@@ -77,13 +77,15 @@ namespace WaveFunctionCollapse
 
         private void PropagateNeighbour(CellPair propagatePair)//pt celula tinta; patterns compatibile gasite sunt salvate in dictionarul din OutputGrid
         {
-            Debug.Log("Am apelat metoda PropagateNeighbour");
+            //Debug.Log("Am apelat metoda PropagateNeighbour");
             HashSet<int> possibleValuesAtNeighbour = outputGrid.GetPossibleValuesForPosition(propagatePair.CellToPropagatePosition);//patterns care pot sta in celula tinta
             int startCount = possibleValuesAtNeighbour.Count;//cate celule pot sta in celula tinta
-            Debug.Log("Patterns posibile (si incompatibile): " + possibleValuesAtNeighbour.Count);
+
+            //Debug.Log("Patterns posibile (si incompatibile): " + possibleValuesAtNeighbour.Count);
 
             RemoveImpossibleNeighbours(propagatePair, possibleValuesAtNeighbour);//scapam de patterns incompatibile pt celula tinta
-            Debug.Log("Patterns compatibile: " + possibleValuesAtNeighbour.Count);
+
+            //Debug.Log("Patterns compatibile: " + possibleValuesAtNeighbour.Count);
 
             int newPossiblePatternCount = possibleValuesAtNeighbour.Count;//cu cate pattern-uri compatibile am ramas
             propagationHelper.AnalyzePropagationResults(propagatePair, startCount, newPossiblePatternCount);
@@ -130,11 +132,11 @@ namespace WaveFunctionCollapse
 
         public Vector2Int GetLowestEntropyCell()
         {
-            Debug.Log("Am apelat metoda GetLowestEntropyCell");
+            // Debug.Log("Am apelat metoda GetLowestEntropyCell");
             if (propagationHelper.LowEntropySet.Count <= 0)
             {
                 var coords = outputGrid.GetRandomCellCoords();
-                Debug.Log("Low entropy random coords: " + coords);
+                // Debug.Log("Low entropy random coords: " + coords);
                 return coords;
             }
 
@@ -165,14 +167,14 @@ namespace WaveFunctionCollapse
                 LowEntropyCell lowestEntropyElement = propagationHelper.LowEntropySet.First();//luam din set
                 Vector2Int returnVector = lowestEntropyElement.position;
                 propagationHelper.LowEntropySet.Remove(lowestEntropyElement);//eliminam din set
-                Debug.Log("Low entropy cell coords: " + returnVector);
+                                                                             //  Debug.Log("Low entropy cell coords: " + returnVector);
                 return returnVector;//returnam pozitia (x,y) a celulei cu entropie minima
             }
         }
 
         public void CollapseCell(Vector2Int cellCoordinates)
         {
-            Debug.Log("Am apelat metoda CollapseCell");
+            // Debug.Log("Am apelat metoda CollapseCell");
             //Backtrack last 5 steps:
             lastSteps.Push(new CollapseStep //save the current possibilities for this cell before collapsing
             {
@@ -187,7 +189,7 @@ namespace WaveFunctionCollapse
                 for (int i = temp.Length - 1; i >= temp.Length - maxBacktrackSteps; i--)
                     lastSteps.Push(temp[i]);
             }
-            Debug.Log("Avem " + lastSteps.Count + " pasi in coada de backtrack.");
+            // Debug.Log("Avem " + lastSteps.Count + " pasi in coada de backtrack.");
 
 
 
@@ -198,10 +200,10 @@ namespace WaveFunctionCollapse
                 possibleSet = possibleSet.Except(middlePatterns).ToHashSet();
 
             List<int> possibleValues = possibleSet.ToList();
-            Debug.Log("Avem " + possibleValues.Count + " patterns posibile pt celula cu coordonate " + cellCoordinates);
+            //  Debug.Log("Avem " + possibleValues.Count + " patterns posibile pt celula cu coordonate " + cellCoordinates);
 
             var backup = new HashSet<int>(possibleValues);
-            Debug.Log("In backup avem tot " + backup.Count + " patterns pt celula cu coordonate " + cellCoordinates);
+            //  Debug.Log("In backup avem tot " + backup.Count + " patterns pt celula cu coordonate " + cellCoordinates);
 
             if (possibleValues.Count == 0)
             {
@@ -238,8 +240,8 @@ namespace WaveFunctionCollapse
             }
 
             // continue as before, but pick from the *filtered* list
-            int chosenPatternId = coreHelper.SelectSolutionPatternFromFrequency(validValues, cellCoordinates, softBanned);
-            Debug.Log("pattern ales: " + chosenPatternId);
+            int chosenPatternId = coreHelper.SelectSolutionPatternFromFrequency(validValues, cellCoordinates);
+            // Debug.Log("pattern ales: " + chosenPatternId);
 
 
             outputGrid.SetPatternOnPosition(cellCoordinates.x, cellCoordinates.y, chosenPatternId);
@@ -299,16 +301,16 @@ namespace WaveFunctionCollapse
                 outputGrid.SetPossiblePatterns(step.cell.x, step.cell.y, step.previousPossibilities);
 
                 // 2. Add to propagation queue (so the constraints are re-propagated)
-                // Assuming you can access the queue here or via PropagationHelper:
                 propagationHelper.PairsToPropagate.Enqueue(new CellPair(step.cell, step.cell, Dir.Up, step.cell));
+                propagationHelper.PairsToPropagate.Enqueue(new CellPair(step.cell, step.cell, Dir.Down, step.cell));
+                propagationHelper.PairsToPropagate.Enqueue(new CellPair(step.cell, step.cell, Dir.Right, step.cell));
+                propagationHelper.PairsToPropagate.Enqueue(new CellPair(step.cell, step.cell, Dir.Left, step.cell));
 
                 // 3. Recalculate entropy (add back to low entropy set)
                 propagationHelper.AddToLowEntropySet(step.cell);
             }
             return true;
         }
-
-
 
     }
 }

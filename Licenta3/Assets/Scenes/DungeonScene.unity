@@ -439,6 +439,12 @@ MonoBehaviour:
   downBoundaryWall: {fileID: 11400000, guid: db10dfb0d55906c49ad1036095a866c4, type: 2}
   counter: {fileID: 11400000, guid: 6247f45087e160146bbb3a9a6a5bb0db, type: 2}
   sink: {fileID: 11400000, guid: 3ba54f4a9abeabb4488fce308c7a4e5c, type: 2}
+  sinkDr: {fileID: 11400000, guid: 79f1ba066f9dc37438dbb1568be708b3, type: 2}
+  sinkSt: {fileID: 11400000, guid: 4bc0dafb2ba63bf4bad062baac28a86b, type: 2}
+  sinkJos: {fileID: 11400000, guid: 25c63bb054047ae43815c6dbaa187b5e, type: 2}
+  counterDr: {fileID: 11400000, guid: 78e2e4e83fc810d408f0f4dab1e5ed95, type: 2}
+  counterSt: {fileID: 11400000, guid: 78e2e4e83fc810d408f0f4dab1e5ed95, type: 2}
+  counterJos: {fileID: 11400000, guid: b81d2523153c67a488d2cc7df5501530, type: 2}
   generate: {fileID: -7250344737315704751, guid: 67f06e7f5f30a634091ec022e0e61f81, type: 3}
   OnFinishedRoomGenerator:
     m_PersistentCalls:
@@ -458,6 +464,8 @@ MonoBehaviour:
   dungeonData: {fileID: 1312564748}
   apartmentConfig: {fileID: 11400000, guid: 6918967fd45fb43429abb539c604ca05, type: 2}
   animatedTilePrefab: {fileID: 4134184210745417848, guid: 0a94aa33095989a4a8b689bf681ca438, type: 3}
+  skipSprite: {fileID: 21300000, guid: 8b1c8f02b92f83045a3e875c086c1490, type: 3}
+  skipTilemap: {fileID: 1469071644}
 --- !u!4 &160309628
 Transform:
   m_ObjectHideFlags: 0
@@ -2623,7 +2631,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1282803920}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 19102, guid: 0000000000000000e000000000000000, type: 0}
   m_Name: 

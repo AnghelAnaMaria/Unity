@@ -88,8 +88,8 @@ public class WFCSettingsUI : MonoBehaviour
         {
             isLocked = true;
             root.style.display = DisplayStyle.None;
-            Final.Instance.CreateWFC();
-            Final.Instance.CreateTilemap();
+            // Final.Instance.CreateWFC();
+            // Final.Instance.CreateTilemap();
         };
         mainMenuButton.clicked += () =>
             SceneManager.LoadScene("MainMenu");

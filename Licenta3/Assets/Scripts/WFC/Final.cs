@@ -41,9 +41,10 @@ public class Final : MonoBehaviour
     private HashSet<int> downPatterns = new HashSet<int>();
     private HashSet<int> upPatterns = new HashSet<int>();
     private HashSet<int> middlePatterns = new HashSet<int>();
-    private Dictionary<Vector2Int, HashSet<int>> restrictions = new Dictionary<Vector2Int, HashSet<int>>();//restrictiile pt anumite celule din output
-    private Dictionary<Vector2Int, HashSet<int>> softBanned = new Dictionary<Vector2Int, HashSet<int>>();//dictionar (pozitie, ce patterns nu ne dorim)
+    private Dictionary<Vector2Int, HashSet<int>> restrictions;
+    private Dictionary<Vector2Int, HashSet<int>> softBanned;
     private Dictionary<Vector2Int, int[][]> allChunkResults = new Dictionary<Vector2Int, int[][]>();
+
 
     public static Final Instance { get; private set; }
     private void Awake()
@@ -52,17 +53,62 @@ public class Final : MonoBehaviour
     }
 
 
-    // void Start()
-    // {
-    //     // CreateWFC();
-    //     // CreateLargeTilemap();
-
-    //     // // CreateTilemap();
-
-    // }
-    private IEnumerator Start()//corutina
+    void Start()
     {
+        outputTilemap.ClearAllTiles();
 
+
+        // CreateWFC();
+        // CreateTilemap();
+
+
+        // CreateLargeTilemap();
+    }
+
+
+    // private IEnumerator Start()//corutina
+    // {
+
+    //     CreateWFC();
+    //     int[][] result = core.CreateOutputGrid();
+    //     output = new TilemapOutput(inputManager, outputTilemap);
+
+    //     var ordered = core.CollapseOrder;//lista cu ordinea in care colapsam pentru animatie
+
+    //     if (result.Length == 0)
+    //     {
+    //         output.CreatePartialOutput(patternManager, core.OutputGrid, errorTile: null, pendingTile: null);
+    //         Debug.Log("Nu s-a generat total");
+    //         yield break;
+    //     }
+    //     else
+    //     {
+    //         //Call animation
+    //         yield return StartCoroutine(
+    //             output.AnimateOrderedOutput(
+    //                 ordered,      // lista de poziţii în ordinea colapsării
+    //                 result,                  // grila finală int[][] de pattern-uri
+    //                 patternManager,          // ca să convertim pattern → value
+    //                 inputManager,            // ca să convertim value → TileBase
+    //                 animatedTilePrefab,      // prefab‐ul cu AnimatedTileFall + SpriteRenderer
+    //                 0.05f                    // întârzierea între două căderi
+    //             )
+    //         );
+    //     }
+    // }
+
+    void Update()
+    {
+        // When the user presses A, fire off the animation (once)
+        if (UnityEngine.Input.GetKeyDown(KeyCode.A))
+        {
+            StartCoroutine(AnimateWFC());
+        }
+
+    }
+
+    public IEnumerator AnimateWFC()
+    {
         CreateWFC();
         int[][] result = core.CreateOutputGrid();
         output = new TilemapOutput(inputManager, outputTilemap);
@@ -72,6 +118,7 @@ public class Final : MonoBehaviour
         if (result.Length == 0)
         {
             output.CreatePartialOutput(patternManager, core.OutputGrid, errorTile: null, pendingTile: null);
+            Debug.Log("Nu s-a generat complet");
             yield break;
         }
         else
@@ -84,7 +131,8 @@ public class Final : MonoBehaviour
                     patternManager,          // ca să convertim pattern → value
                     inputManager,            // ca să convertim value → TileBase
                     animatedTilePrefab,      // prefab‐ul cu AnimatedTileFall + SpriteRenderer
-                    0.05f                    // întârzierea între două căderi
+                    0.05f                  // întârzierea între două căderi
+
                 )
             );
         }
@@ -116,10 +164,134 @@ public class Final : MonoBehaviour
 
     }
 
+    // public void ApplyRestrictions()
+    // {
+    //     // 4) Apply per-column constraints on the pattern-grid
+    //     int N = patternSize;
+    //     restrictions = new Dictionary<Vector2Int, HashSet<int>>();//restrictiile pt anumite celule din output
+    //     softBanned = new Dictionary<Vector2Int, HashSet<int>>();//dictionar (pozitie, ce patterns nu ne dorim)
+
+    //     foreach (int pid in patternManager.GetAllPatternIndices())
+    //     {
+    //         var patternData = patternManager.GetPatternDataFromIndex(pid);
+    //         var pattern = patternData.Pattern;
+    //         // Jos-stanga (0,0)
+    //         int idxJosStanga = pattern.GetGridValue(0, 0);
+    //         var tileJosStanga = inputManager.GetValueFromIndex(idxJosStanga).value;
+    //         // var tileJosStanga = FindTileByIndex(idxJosStanga, allValueManagers);
+    //         string nameJosStanga = (tileJosStanga is Tile t1) ? t1.sprite.name : tileJosStanga.name;
+    //         if (nameJosStanga == "Grass" || nameJosStanga == "Collider" || nameJosStanga == "ColliderWithRightWall")
+    //             leftPatterns.Add(pid);//allowed
+    //         if (nameJosStanga == "Grass" || nameJosStanga == "Collider" || nameJosStanga == "ColliderWithRightWall" || nameJosStanga == " ColliderWithLeftWall" || nameJosStanga == "ColliderWithUpWall" || nameJosStanga == "ColliderWithDownWall")
+    //             middlePatterns.Add(pid);//not allowed
+
+    //         // Jos-dreapta (N-1,0)
+    //         int idxJosDreapta = pattern.GetGridValue(N - 1, 0);
+    //         var tileJosDreapta = inputManager.GetValueFromIndex(idxJosDreapta).value;
+    //         // var tileJosDreapta = FindTileByIndex(idxJosDreapta, allValueManagers);
+    //         string nameJosDreapta = (tileJosDreapta is Tile t2) ? t2.sprite.name : tileJosDreapta.name;
+    //         if (nameJosDreapta == "Grass" || nameJosDreapta == "Collider" || nameJosDreapta == " ColliderWithLeftWall")
+    //             rightPatterns.Add(pid);
+
+    //         // Jos-stanga (0,0)
+    //         int idxSusDreapta = pattern.GetGridValue(0, 0);
+    //         var tileSusDreapta = inputManager.GetValueFromIndex(idxSusDreapta).value;
+    //         //var tileSusDreapta = FindTileByIndex(idxSusDreapta, allValueManagers);
+    //         string nameSusDreapta = (tileSusDreapta is Tile t3) ? t3.sprite.name : tileSusDreapta.name;
+    //         if (nameSusDreapta == "Grass" || nameSusDreapta == "Collider" || nameSusDreapta == "ColliderWithUpWall")
+    //             downPatterns.Add(pid);
+
+    //         // Sus-stanga (0,N-1) fara primul pattern de sus si fara ultimul pattern de sus
+    //         int idxSusStanga = pattern.GetGridValue(0, N - 1);
+    //         var tileSusStanga = inputManager.GetValueFromIndex(idxSusStanga).value;
+    //         // var tileSusStanga = FindTileByIndex(idxSusStanga, allValueManagers);
+    //         string nameSusStanga = (tileSusStanga is Tile t4) ? t4.sprite.name : tileSusStanga.name;
+    //         if (nameSusStanga == "Grass" || nameSusStanga == "Collider" || nameSusStanga == "ColliderWithDownWall")
+    //             upPatterns.Add(pid);
+    //     }
+
+    //     // Poți afișa sau folosi mai departe aceste seturi!
+    //     // Debug.Log($"leftPatterns index : {string.Join(",", leftPatterns)}");
+    //     // Debug.Log($"rightPatterns index : {string.Join(",", rightPatterns)}");
+    //     // Debug.Log($"downPatterns index : {string.Join(",", downPatterns)}");
+    //     // Debug.Log($"upPatterns index : {string.Join(",", upPatterns)}");
+
+
+    //     // //Left input patterns:
+    //     // int leftColOffset = (patternSize < 3) ? 1 : (patternSize - 1);//ne trebuie pt a face rost de coloana 0 a ferestrelor (care intern incep de la -1 sau -(N-1))
+    //     // HashSet<int> leftColumnPatterns = new HashSet<int>();//lista cu patterns/ferestre care stau pe prima coloana fara sa iasa din int[][] grila de indexi de Tiles
+    //     // for (int py = 0; py < rows; py++)
+    //     // {
+    //     //     int index = patternResults.GetIndexAt(leftColOffset, py);//pattern care sta pe prima coloana
+    //     //     leftColumnPatterns.Add(index);
+
+    //     //     // //pt fiecare pattern iau sprite-ul din colțul stânga-jos (0,0) ca sa ne convingem ca avem pattern de margine stanga din input 
+    //     //     // var pat = patternManager.GetPatternDataFromIndex(index).Pattern;
+    //     //     // int valIndex = pat.GetGridValue(0, 0);
+    //     //     // var tb = valueManager.GetValueFromIndex(valIndex).value;
+    //     //     // string spriteName = (tb is Tile t)
+    //     //     //                     ? t.sprite.name
+    //     //     //                     : tb.name;
+
+    //     //     // Debug.Log($"index posibil stânga: {index}, sprite = {spriteName}");
+    //     // }
+
+    //     // //Right input patterns:
+    //     // int rightColOffset = cols - 1 - (patternSize - 1);
+    //     // HashSet<int> rightColumnPatterns = new HashSet<int>();//lista cu patterns/ferestre care stau pe ultima coloana fara sa iasa din int[][] grila de indexi de Tiles
+    //     // for (int py = 0; py < rows; py++)
+    //     // {
+    //     //     int index = patternResults.GetIndexAt(rightColOffset, py);//pattern care sta pe ultima coloana (fereastra nu iese din gridul de int care reprezinta Tiles)
+    //     //     rightColumnPatterns.Add(index);
+
+    //     //     //pt fiecare pattern iau sprite-ul din colțul dreapta-jos (N-1,0) ca sa ne convingem ca avem pattern de margine dreapta din input 
+    //     //     var pat = patternManager.GetPatternDataFromIndex(index).Pattern;
+    //     //     int valIndex = pat.GetGridValue(patternSize - 1, 0);
+    //     //     var tb = valueManager.GetValueFromIndex(valIndex).value;
+    //     //     string spriteName = (tb is Tile t)
+    //     //                         ? t.sprite.name
+    //     //                         : tb.name;
+
+    //     //     Debug.Log($"index posibil dreapta: {index}, sprite = {spriteName}");
+    //     // }
+
+
+
+    //     var allPatterns = Enumerable.Range(0, patternManager.GetNumberOfPatterns()).ToHashSet();
+    //     // for (int px = (int)outputWidth / 3; px < (int)2 * outputWidth / 3; px++)
+    //     //     for (int py = (int)outputHeight / 3; py < (int)2 * outputHeight / 3; py++)
+    //     //     {
+    //     //         restrictions[new Vector2Int(px, py)] = allPatterns.Except(middlePatterns).ToHashSet();
+    //     //     }
+    //     for (int px = 2; px < outputWidth - 3; px++)
+    //         for (int py = 2; py < outputHeight - 3; py++)
+    //         {
+    //             restrictions[new Vector2Int(px, py)] = allPatterns.Except(middlePatterns).ToHashSet();
+    //         }
+
+
+    //     // // for (int py = 0; py < outputHeight; py++)
+    //     // //     restrictions[new Vector2Int(0, py)] = leftPatterns;//restrictii pt coloana stanga
+    //     // // for (int py = 0; py < outputHeight; py++)
+    //     // //     restrictions[new Vector2Int(outputWidth - 1, py)] = rightPatterns;//restrictii pt coloana dreapta
+    //     // // core = new WFCCore(outputWidth, outputHeight, maxIteration, patternManager, restrictions);
+
+    //     for (int py = 0; py < outputHeight; py++)//pe marginea stângă
+    //         restrictions[new Vector2Int(0, py)] = leftPatterns;
+    //     for (int py = 0; py <= outputHeight - 1 - patternSize; py++)//pe marginea dreaptă
+    //         restrictions[new Vector2Int(outputWidth - 1, py)] = allPatterns;
+    //     for (int px = 1; px <= outputWidth - 1 - patternSize; px++)//jos
+    //         restrictions[new Vector2Int(px, 0)] = downPatterns;
+    //     for (int px = 1; px <= outputWidth - 1 - patternSize; px++)//sus
+    //         restrictions[new Vector2Int(px, outputHeight - 1)] = upPatterns;
+    // }
+
     public void ApplyRestrictions()
     {
         // 4) Apply per-column constraints on the pattern-grid
         int N = patternSize;
+        restrictions = new Dictionary<Vector2Int, HashSet<int>>();
+        softBanned = new Dictionary<Vector2Int, HashSet<int>>();
 
         foreach (int pid in patternManager.GetAllPatternIndices())
         {
@@ -284,11 +456,13 @@ public class Final : MonoBehaviour
 
         if (result.Length == 0)
         {
+            Debug.Log("paula");
             // WFC failed, draw what was achieved so far:
             output.CreatePartialOutput(patternManager, core.OutputGrid, errorTile: null, pendingTile: null);
         }
         else
         {
+            Debug.Log("andrei");
             // Success, draw the full result
             output.CreateOutput(patternManager, result, outputWidth, outputHeight);
             //StartCoroutine(output.AnimateOutput(patternManager, result, outputWidth, outputHeight, animatedTilePrefab));
@@ -374,7 +548,6 @@ public class Final : MonoBehaviour
             output.CreateOutput(patternManager, finalGrid, gridWidth, gridHeight);
         }
     }
-
     public void DrawPartialOutput()
     {
         if (core != null && patternManager != null && output != null)
@@ -383,15 +556,15 @@ public class Final : MonoBehaviour
         }
     }
 
-    public void SaveTilemap()
-    {
-        if (output.OutputImage != null)
-        {
-            outputTilemap = output.OutputImage;
-            GameObject objectToSave = outputTilemap.gameObject;
+    // public void SaveTilemap()
+    // {
+    //     if (output.OutputImage != null)
+    //     {
+    //         outputTilemap = output.OutputImage;
+    //         GameObject objectToSave = outputTilemap.gameObject;
 
-            PrefabUtility.SaveAsPrefabAsset(objectToSave, "Assets/Prefabs/output.prefab");
-        }
-    }
+    //         PrefabUtility.SaveAsPrefabAsset(objectToSave, "Assets/Prefabs/output.prefab");
+    //     }
+    // }
 
 }

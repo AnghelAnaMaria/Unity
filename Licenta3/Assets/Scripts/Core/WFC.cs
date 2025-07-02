@@ -11,8 +11,6 @@ namespace WaveFunctionCollapse
         private PatternManager patternManager;//patterns, vecini pt patterns, strategia
         private int maxIterations;
         private Dictionary<Vector2Int, HashSet<int>> softBanned;//patterns care nu vrem sa apara pe anumite pozitii
-        private int outputWidth;
-        private int outputHeight;
         private Dictionary<Vector2Int, HashSet<int>> initialRestrictions;
         int maxBacktrackSteps;
         private HashSet<int> middlePatterns;
@@ -23,8 +21,6 @@ namespace WaveFunctionCollapse
         public OutputGrid OutputGrid => outputGrid;
         public WFC(int outputWidth, int outputHeight, int maxIterations, PatternManager patternManager, int maxBacktrackSteps, HashSet<int> middlePatterns, Dictionary<Vector2Int, HashSet<int>> softBanned = null, Dictionary<Vector2Int, HashSet<int>> initialRestrictions = null)
         {
-            this.outputWidth = outputWidth;
-            this.outputHeight = outputHeight;
             this.outputGrid = new OutputGrid(outputWidth, outputHeight, patternManager.GetNumberOfPatterns());
             this.maxIterations = maxIterations;
             this.patternManager = patternManager;
@@ -78,7 +74,7 @@ namespace WaveFunctionCollapse
                     {
                         iteration++;
                         outputGrid.ResetAllPossibilities();
-                        // ApplyInitialRestrictions();
+                        ApplyInitialRestrictions();
                         solverManager = new SolverManager(this.outputGrid, this.patternManager, this.maxBacktrackSteps, this.middlePatterns, softBanned);
                         solverManager.OnCellCollapsed = (pos, pat) => CollapseOrder.Add(pos);
 

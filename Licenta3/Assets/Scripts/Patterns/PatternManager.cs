@@ -36,14 +36,14 @@ namespace WaveFunctionCollapse
             CreatePatterns(inputManager, strategy, equalWeights);
         }
 
-        private void CreatePatterns<T>(InputManager<T> valueManager, INeighbours strategy, bool equalWeights)
+        private void CreatePatterns<T>(InputManager<T> inputManager, INeighbours strategy, bool equalWeights)
         {
-            PatternResults patternDataResults = FindPatterns.GetPatternDataFromGrid(valueManager, patternSize, equalWeights);//avem matricea de patterns
-            foreach (var kv in patternDataResults.patternIndexDictionary)
+            PatternResults patternResults = FindPatterns.GetPatternDataFromGrid(inputManager, patternSize, equalWeights);//avem matricea de patterns
+            foreach (var kv in patternResults.patternIndexDictionary)
                 patternDataIndexDictionary.Add(kv.Key, kv.Value);
             Debug.Log($"[PatternManager] Extracted {patternDataIndexDictionary.Count} patterns: " + string.Join(",", patternDataIndexDictionary.Keys));
 
-            GetPatternNeighbours(patternDataResults, strategy);
+            GetPatternNeighbours(patternResults, strategy);
         }
 
         private void GetPatternNeighbours(PatternResults patternDataResults, INeighbours strategy)
@@ -75,9 +75,9 @@ namespace WaveFunctionCollapse
 
             for (int row = 0; row < patternOutputHeight; row++)
             {
-                for (int col = 0; col < patternOutputWidth; col++)//pt fiecare pattern
+                for (int col = 0; col < patternOutputWidth; col++)//pt fiecare index de pattern
                 {
-                    Pattern pattern = GetPatternDataFromIndex(outputValues[row][col]).Pattern;
+                    Pattern pattern = GetPatternDataFromIndex(outputValues[row][col]).Pattern;//luam patternul
                     GetPatternValues(patternOutputWidth, patternOutputHeight, valueGrid, row, col, pattern);//reconstruieste grila int[][] (ce reprezinta Tiles)
                 }
             }
@@ -87,31 +87,31 @@ namespace WaveFunctionCollapse
 
         private void GetPatternValues(int patternOutputWidth, int patternOutputHeight, int[][] valueGrid, int row, int col, Pattern pattern)// (Depinde care este pozitia pattern-ului in matricea de patterns -> 4 cazuri)
         {
-            if (row == patternOutputHeight - 1 && col == patternOutputWidth - 1)//cel mai jos-dreapta pattern
+            if (row == patternOutputHeight - 1 && col == patternOutputWidth - 1)//ultimul rand si ultima coloana din matricea de indici de patterns/ cel mai sus-dreapta pattern in matricea de patterns
             {
                 for (int row_1 = 0; row_1 < patternSize; row_1++)
                 {
-                    for (int col_1 = 0; col_1 < patternSize; col_1++)
+                    for (int col_1 = 0; col_1 < patternSize; col_1++)//parcurg patternul
                     {
-                        valueGrid[row + row_1][col + col_1] = pattern.GetGridValue(col_1, row_1);
+                        valueGrid[row + row_1][col + col_1] = pattern.GetGridValue(col_1, row_1);//adaug toate valorile de int din patternul de sus-dreapta
                     }
                 }
             }
-            else if (row == patternOutputHeight - 1)//patterns de jos (nu parcurgem si pe coloane pt ca oricum se suprapun)
+            else if (row == patternOutputHeight - 1)//ultimul rand de indici de patterns /patterns de sus in matricea de patterns 
             {
                 for (int row_1 = 0; row_1 < patternSize; row_1++)
                 {
-                    valueGrid[row + row_1][col] = pattern.GetGridValue(0, row_1);
+                    valueGrid[row + row_1][col] = pattern.GetGridValue(0, row_1);//adaug prima coloana din acest pattern
                 }
             }
-            else if (col == patternOutputWidth - 1)//patterns de la dreapta (nu parcurgem si pe randuri pt ca oricum se suprapun)
+            else if (col == patternOutputWidth - 1)//patterns de la dreapta din matricea de patterns
             {
                 for (int col_1 = 0; col_1 < patternSize; col_1++)
                 {
-                    valueGrid[row][col + col_1] = pattern.GetGridValue(col_1, 0);
+                    valueGrid[row][col + col_1] = pattern.GetGridValue(col_1, 0);//adaug randul de jos
                 }
             }
-            else//restul de patterns (care nu sunt la periferie la dreapta sau jos) participa cu o valoare int
+            else//restul de patterns (care nu sunt la periferie la dreapta sau sus) participa cu o valoare int (coltul din stanga-jos)
             {
                 valueGrid[row][col] = pattern.GetGridValue(0, 0);
             }

@@ -36,8 +36,8 @@ namespace WaveFunctionCollapse
         //Constructor:
         public Propagation(OutputGrid outputGrid, HelperManager coreHelper)
         {
-            this.outputGrid = outputGrid ?? throw new System.ArgumentNullException("outputGrid");
-            this.coreHelper = coreHelper ?? throw new System.ArgumentNullException("coreHelper");
+            this.outputGrid = outputGrid ?? throw new System.ArgumentNullException("null outputGrid");
+            this.coreHelper = coreHelper ?? throw new System.ArgumentNullException("null coreHelper");
             this.lowEntropySet = new SortedSet<LowEntropyCell>();
             this.pairsToPropagate = new Queue<CellPair>();
         }
