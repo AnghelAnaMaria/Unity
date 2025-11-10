@@ -1,18 +1,18 @@
-# Licență
+# License
 
-Acest document stabilește condițiile de folosire, copiere și distribuire pentru proiectul "Generare planuri de apartamente: Procedural Content Generation și Wave Function Collapse", lucrare ce își propune să investigheze potențialul celor doi algoritmi mentionați prin crearea de planuri de apartamente pentru industria jocurilor video.
+This document sets the terms for the use, copying, and distribution of the project “Apartment Layout Generation: Procedural Content Generation and Wave Function Collapse”, a work aimed at exploring the potential of the two mentioned algorithms by creating apartment layouts for the video game industry.
 
-## Concesiune de drepturi
-Vă acord, gratuit și nelimitat, permisiunea de a folosi, copia, modifica și distribui codul sursă și resursele acestui proiect, cu condiția să păstrați acest fișier în orice copie.
+## Grant of Rights
+I hereby grant you free and unlimited permission to use, copy, modify, and distribute the source code and resources of this project, provided that this file is retained in any copy.
 
-## Restricții
-- Nu folosiți numele “Generare planuri de apartamente: Procedural Content Generation și Wave Function Collapse” în materiale publicitare fără acord scris.
-- Nu folosiți acest software în aplicații comerciale fără acordul prealabil.
+## Restrictions
+- Do not use the name “Apartment Layout Generation: Procedural Content Generation and Wave Function Collapse” in promotional materials without written permission.
+- Do not use this software in commercial applications without prior consent.
 
-## Disclaimer de garanții
-Nu ofer nicio garanție, nici implicită, nici explicită. În niciun caz nu răspund pentru daune.
+## Disclaimer of Warranties
+I provide no warranties, either express or implied. In no event shall I be liable for any damages arising from the use of this software.
 
 
 
 © 2025 Anghel Ana-Maria 
-Toate drepturile rezervate.
+All rights reserved.
