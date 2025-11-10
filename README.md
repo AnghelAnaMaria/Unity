@@ -1,8 +1,8 @@
-## Licență
+## License
 
-Proiectul folosește doi algoritmi importanți de generare procedurală pentru a produce planuri de apartamente personalizate în Unity 2D și pentru a compara rezultatele.
+The project uses two important procedural generation algorithms to produce customized apartment layouts in Unity 2D and to compare the results.
 
-Acest proiect este licențiat sub numele **Generare planuri de apartamente: Procedural Content Generation și Wave Function Collapse** – vezi [LICENSE.md](LICENSE.md) pentru textul complet.  
+This project is licensed under the name **Apartment Layout Generation: Procedural Content Generation and Wave Function Collapse** – see [LICENSE.md](LICENSE.md) for the full text.  
 
-> **Componente terțe**  
-> Părți din acest proiect provin din surse terțe sub licența MIT. Vezi [THIRD_PARTY.md](THIRD_PARTY.md) pentru detalii.
+> **Third-Party Components**  
+> Parts of this project come from third-party sources under the MIT license. See [THIRD_PARTY.md](THIRD_PARTY.md) for details.
