@@ -1,10 +1,10 @@
-# Componente terțe
+# Third-Party Components
 
 ## WaveFunctionCollapseUnityTilemapTutorial
-- **Sursă originală:**  
+- **Original source:**  
   https://github.com/SunnyValleyStudio/WaveFunctionCollapseUnityTilemapTutorial  
-- **Licență originală:** MIT License  
-- **Modificat de:** Anghel Ana-Maria, iulie 2025  
+- **Original license:** MIT License  
+- **Modified by:** Ana-Maria Anghel, July 2025  
 
-### Textul complet al MIT License  
-Vezi fișierul [`licenses/MIT.txt`](licenses/MIT.txt) pentru textul integral al MIT License.
+### Full MIT License text:
+See file [`licenses/MIT.txt`](licenses/MIT.txt) for the complete MIT License text.
